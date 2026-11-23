@@ -1,7 +1,20 @@
+# Dependencies
 node_modules/
+
+# Build
 dist/
+
+# Environment
 .env
 .env.*
 !.env.example
-src/generated/prisma/
+
+# Logs
+logs/
+*.log
+
+# Testing
 coverage/
+
+# OS
+.DS_Store
