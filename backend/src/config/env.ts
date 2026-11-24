@@ -27,6 +27,30 @@ const envSchema = z.object({
           ),
 
      DATABASE_URL: z.string().optional().default(""),
+
+     // JWT Authentication Config
+     JWT_ACCESS_SECRET: z
+          .string()
+          .min(32, "JWT_ACCESS_SECRET must be at least 32 characters long"),
+
+     JWT_REFRESH_SECRET: z
+          .string()
+          .min(32, "JWT_REFRESH_SECRET must be at least 32 characters long"),
+
+     JWT_ACCESS_EXPIRES_IN: z.string().default("15m"),
+
+     JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
+
+     COOKIE_DOMAIN: z.string().optional(),
+
+     GOOGLE_CLIENT_ID: z.string().min(1, "GOOGLE_CLIENT_ID is required"),
+     GOOGLE_CLIENT_SECRET: z
+          .string()
+          .min(1, "GOOGLE_CLIENT_SECRET is required"),
+     
+     GOOGLE_REDIRECT_URI: z.string().min(1, "GOOGLE_REDIRECT_URI is required"),
+
+     FRONTEND_URL: z.string().min(1, "FRONTEND_URL is required"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

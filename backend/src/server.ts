@@ -5,7 +5,7 @@ import { env } from "./config/index.js";
 import {
      connectDatabase,
      disconnectDatabase,
-} from "./database/prisma.js";
+} from "./config/prisma.js";
 import { logger } from "./shared/logger/index.js";
 
 async function startServer(): Promise<void> {
