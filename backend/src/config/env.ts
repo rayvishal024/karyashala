@@ -51,6 +51,10 @@ const envSchema = z.object({
      GOOGLE_REDIRECT_URI: z.string().min(1, "GOOGLE_REDIRECT_URI is required"),
 
      FRONTEND_URL: z.string().min(1, "FRONTEND_URL is required"),
+
+     RESEND_API_KEY: z.string().min(1, "RESEND_API_KEY is required"),
+
+     APP_URL: z.string().min(1, "APP_URL is required"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
