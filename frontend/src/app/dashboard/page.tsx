@@ -1,37 +1,87 @@
 "use client";
 
-import { useAuth } from "@/context/auth-context";
+import { AuthGuard, useAuth } from "@/features/auth";
+import { ThemeToggle } from "@/shared/theme/theme-toggle";
 
-export default function DashboardPage() {
-     const { user, isLoading, logout } = useAuth();
-
-     if (isLoading) {
-          return (
-               <div className="flex min-h-screen items-center justify-center">
-                    <p className="text-sm text-gray-500">Loading session...</p>
-               </div>
-          );
-     }
+function DashboardContent() {
+     const { user, logout } = useAuth();
 
      return (
-          <main className="mx-auto max-w-3xl px-4 py-12">
-               <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <div>
-                         <h1 className="text-xl font-bold text-gray-900">
+          <div
+               style={{
+                    backgroundColor: "var(--bg-canvas)",
+                    color: "var(--text-primary)",
+               }}
+               className="min-h-screen"
+          >
+               <header
+                    style={{
+                         backgroundColor: "var(--bg-surface)",
+                         borderColor: "var(--border-hairline)",
+                    }}
+                    className="border-b px-6 py-3.5"
+               >
+                    <div className="mx-auto flex max-w-5xl items-center justify-between">
+                         <div className="flex items-center gap-2">
+                              <span
+                                   style={{
+                                        backgroundColor: "var(--cta-bg)",
+                                        color: "var(--cta-fg)",
+                                   }}
+                                   className="flex h-7 w-7 items-center justify-center rounded-md text-xs font-semibold"
+                              >
+                                   K
+                              </span>
+                              <span className="text-sm font-semibold tracking-tight">
+                                   Karyashala
+                              </span>
+                         </div>
+
+                         <div className="flex items-center gap-2.5">
+                              <ThemeToggle />
+                              <button
+                                   type="button"
+                                   onClick={logout}
+                                   style={{
+                                        backgroundColor: "var(--bg-subtle)",
+                                        borderColor: "var(--border-input)",
+                                        color: "var(--text-primary)",
+                                   }}
+                                   className="h-8 cursor-pointer rounded-md border px-3 text-xs font-medium transition-opacity hover:opacity-90"
+                              >
+                                   Sign out
+                              </button>
+                         </div>
+                    </div>
+               </header>
+
+               <main className="mx-auto max-w-3xl px-4 py-12">
+                    <div
+                         style={{
+                              backgroundColor: "var(--bg-surface)",
+                              borderColor: "var(--border-hairline)",
+                         }}
+                         className="rounded-xl border p-6"
+                    >
+                         <h1 className="text-lg font-semibold tracking-tight">
                               Welcome, {user?.name}
                          </h1>
-                         <p className="text-sm text-gray-600">
-                              {user?.email} · Provider: {user?.provider} · Role: {user?.role}
+                         <p
+                              style={{ color: "var(--text-secondary)" }}
+                              className="mt-1 text-xs"
+                         >
+                              {user?.email} · {user?.provider} · {user?.role}
                          </p>
                     </div>
+               </main>
+          </div>
+     );
+}
 
-                    <button
-                         onClick={logout}
-                         className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                         Sign out
-                    </button>
-               </div>
-          </main>
+export default function DashboardPage() {
+     return (
+          <AuthGuard>
+               <DashboardContent />
+          </AuthGuard>
      );
 }

@@ -1,4 +1,4 @@
-const API_BASE_URL =
+export const API_BASE_URL =
      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
 export class ApiClientError extends Error {
@@ -45,16 +45,17 @@ export async function apiFetch<T>(
      options: RequestInit = {},
      retry = true,
 ): Promise<T> {
+     const hasBody = options.body !== undefined;
+
      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
           ...options,
           credentials: "include",
           headers: {
-               "Content-Type": "application/json",
+               ...(hasBody ? { "Content-Type": "application/json" } : {}),
                ...options.headers,
           },
      });
 
-     // Attempt silent refresh once on 401 (except on auth endpoints themselves)
      if (
           res.status === 401 &&
           retry &&
@@ -72,7 +73,7 @@ export async function apiFetch<T>(
 
      if (!res.ok || !body?.success) {
           throw new ApiClientError(
-               body?.error?.message || "Something went wrong",
+               body?.error?.message || body?.message || "Something went wrong",
                res.status,
                body?.error?.code || "UNKNOWN_ERROR",
                body?.error?.details,

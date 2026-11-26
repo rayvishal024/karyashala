@@ -2,36 +2,33 @@
 
 import {
      createContext,
+     useCallback,
      useContext,
      useEffect,
      useState,
-     useCallback,
      type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "@/lib/api-client";
-
-export interface User {
-     id: string;
-     email: string;
-     name: string;
-     avatar: string | null;
-     role: "USER" | "ADMIN";
-     provider: "LOCAL" | "GOOGLE";
-     isVerified: boolean;
-     createdAt: string;
-}
+import { authApi } from "../api/auth.api";
+import type { LoginPayload, RegisterPayload, User } from "../types/auth.types";
 
 interface AuthContextValue {
      user: User | null;
      isLoading: boolean;
-     login: (email: string, password: string) => Promise<void>;
-     register: (name: string, email: string, password: string) => Promise<void>;
+     login: (payload: LoginPayload, redirectTo?: string | null) => Promise<void>;
+     register: (payload: RegisterPayload, redirectTo?: string | null) => Promise<void>;
      logout: () => Promise<void>;
      refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+function getSafeRedirect(redirectTo?: string | null): string {
+     if (redirectTo && redirectTo.startsWith("/") && !redirectTo.startsWith("//")) {
+          return redirectTo;
+     }
+     return "/dashboard";
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
      const [user, setUser] = useState<User | null>(null);
@@ -40,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
      const refreshUser = useCallback(async () => {
           try {
-               const data = await apiFetch<{ user: User }>("/auth/me");
+               const data = await authApi.getMe();
                setUser(data.user);
           } catch {
                setUser(null);
@@ -53,28 +50,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           refreshUser();
      }, [refreshUser]);
 
-     const login = async (email: string, password: string) => {
-          const data = await apiFetch<{ user: User }>("/auth/login", {
-               method: "POST",
-               body: JSON.stringify({ email, password }),
-          });
+     const login = async (payload: LoginPayload, redirectTo?: string | null) => {
+          const data = await authApi.login(payload);
           setUser(data.user);
-          router.push("/dashboard");
+          router.push(getSafeRedirect(redirectTo));
           router.refresh();
      };
 
-     const register = async (name: string, email: string, password: string) => {
-          const data = await apiFetch<{ user: User }>("/auth/register", {
-               method: "POST",
-               body: JSON.stringify({ name, email, password }),
-          });
+     const register = async (
+          payload: RegisterPayload,
+          redirectTo?: string | null,
+     ) => {
+          const data = await authApi.register(payload);
           setUser(data.user);
-          router.push("/dashboard");
+          router.push(getSafeRedirect(redirectTo));
           router.refresh();
      };
 
      const logout = async () => {
-          await apiFetch("/auth/logout", { method: "POST" }).catch(() => null);
+          await authApi.logout().catch(() => null);
           setUser(null);
           router.push("/login");
           router.refresh();
@@ -89,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
      );
 }
 
-export function useAuth() {
+export function useAuthContext() {
      const context = useContext(AuthContext);
      if (!context) {
           throw new Error("useAuth must be used within an AuthProvider");
