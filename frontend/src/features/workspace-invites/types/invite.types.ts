@@ -2,7 +2,12 @@ import type { WorkspaceRole } from "@/features/workspace";
 
 export type InviteRoleOption = Extract<WorkspaceRole, "EDITOR" | "VIEWER">;
 
-export type InvitationStatus = "PENDING" | "ACCEPTED" | "EXPIRED" | "REVOKED";
+export type InvitationStatus =
+     | "PENDING"
+     | "ACCEPTED"
+     | "DECLINED"
+     | "EXPIRED"
+     | "REVOKED";
 
 export interface WorkspaceInvitationItem {
      id: string;
@@ -60,6 +65,7 @@ export type UpdateInviteLinkPayload =
      | {
             enabled: boolean;
             defaultJoinRole: InviteRoleOption;
+            expiresInDays?: number | null;
             regenerateCode?: false;
        }
      | {

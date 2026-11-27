@@ -9,12 +9,12 @@ import { useAuth } from "@/features/auth";
 import { ThemeToggle } from "@/shared/theme/theme-toggle";
 import { inviteApi } from "../api/invite.api";
 
-export function JoinCodeCard({ code }: { code: string }) {
+function JoinCodeCardContent({ code }: { code: string }) {
      const router = useRouter();
      const { user, isLoading: authLoading } = useAuth();
      const normalizedCode = code.trim().toUpperCase();
 
-     const [joining, setJoining] = useState(false);
+     const [joining, setJoining] = useState(true);
      const [error, setError] = useState<string | null>(null);
 
      useEffect(() => {
@@ -35,8 +35,6 @@ export function JoinCodeCard({ code }: { code: string }) {
           if (authLoading || !user || !normalizedCode) return;
 
           let active = true;
-          setJoining(true);
-          setError(null);
 
           inviteApi
                .joinByCode(normalizedCode)
@@ -162,4 +160,8 @@ export function JoinCodeCard({ code }: { code: string }) {
                </main>
           </div>
      );
+}
+
+export function JoinCodeCard({ code }: { code: string }) {
+     return <JoinCodeCardContent key={code} code={code} />;
 }

@@ -135,10 +135,24 @@ export const workspaceService = {
           role: WorkspaceRole,
           input: UpdateWorkspaceInput,
      ): Promise<WorkspaceDetail> {
+          const existingSlug = await prisma.workspace.findUnique({
+               where: { slug: input.slug },
+               select: { id: true },
+          });
+
+          if (existingSlug && existingSlug.id !== workspaceId) {
+               throw new AppError(
+                    "This workspace slug is already in use.",
+                    409,
+                    "WORKSPACE_SLUG_TAKEN",
+               );
+          }
+
           const updated = await prisma.workspace.update({
                where: { id: workspaceId },
                data: {
                     name: input.name,
+                    slug: input.slug,
                },
           });
 

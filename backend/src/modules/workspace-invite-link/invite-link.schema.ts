@@ -3,6 +3,13 @@ import { z } from "zod";
 export const updateInviteLinkSchema = z.object({
      enabled: z.boolean(),
      defaultJoinRole: z.enum(["EDITOR", "VIEWER"]),
+     expiresInDays: z
+          .number()
+          .int()
+          .min(1, "Invite code expiry must be at least one day")
+          .max(365, "Invite code expiry cannot exceed 365 days")
+          .nullable()
+          .optional(),
 });
 
 export const joinCodeParamSchema = z.object({

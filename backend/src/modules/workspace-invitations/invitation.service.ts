@@ -42,9 +42,20 @@ async function findAndNormalizeInviteByRawToken(rawToken: string) {
 
      const now = new Date();
      if (invitation.status === "PENDING" && invitation.expiresAt < now) {
-          const expired = await prisma.workspaceInvitation.update({
-               where: { id: invitation.id },
+          const expired = await prisma.workspaceInvitation.updateMany({
+               where: {
+                    id: invitation.id,
+                    status: "PENDING",
+                    expiresAt: { lt: now },
+               },
                data: { status: "EXPIRED" },
+          });
+          if (expired.count === 1) {
+               return { ...invitation, status: "EXPIRED" as const };
+          }
+
+          const latest = await prisma.workspaceInvitation.findUnique({
+               where: { tokenHash },
                include: {
                     workspace: {
                          select: {
@@ -62,7 +73,10 @@ async function findAndNormalizeInviteByRawToken(rawToken: string) {
                     },
                },
           });
-          return expired;
+          if (!latest) {
+               throw new AppError("Invalid invite link.", 404, "INVALID_INVITE");
+          }
+          return latest;
      }
 
      return invitation;
@@ -205,7 +219,7 @@ export const invitationService = {
 
           const currentUserEmail = currentUser.email.trim().toLowerCase();
 
-          return prisma.$transaction(async (tx) => {
+          const outcome = await prisma.$transaction(async (tx) => {
                const tokenHash = hashInviteToken(rawToken);
 
                const invitation = await tx.workspaceInvitation.findUnique({
@@ -233,11 +247,28 @@ export const invitationService = {
                }
 
                if (invitation.expiresAt < new Date()) {
-                    await tx.workspaceInvitation.update({
-                         where: { id: invitation.id },
+                    const expired = await tx.workspaceInvitation.updateMany({
+                         where: {
+                              id: invitation.id,
+                              status: "PENDING",
+                              expiresAt: { lt: new Date() },
+                         },
                          data: { status: "EXPIRED" },
                     });
-                    throw new AppError("This invitation has expired.", 400, "INVITE_EXPIRED");
+                    if (expired.count === 1) {
+                         return { expired: true as const };
+                    }
+                    const latest = await tx.workspaceInvitation.findUnique({
+                         where: { id: invitation.id },
+                         select: { status: true },
+                    });
+                    throw new AppError(
+                         latest
+                              ? `This invitation is ${latest.status.toLowerCase()}.`
+                              : "Invalid invite link.",
+                         latest ? 400 : 404,
+                         latest ? `INVITE_${latest.status}` : "INVALID_INVITE",
+                    );
                }
 
                if (currentUserEmail !== invitation.email.toLowerCase()) {
@@ -248,6 +279,31 @@ export const invitationService = {
                     );
                }
 
+               const accepted = await tx.workspaceInvitation.updateMany({
+                    where: {
+                         id: invitation.id,
+                         status: "PENDING",
+                         expiresAt: { gt: new Date() },
+                    },
+                    data: {
+                         status: "ACCEPTED",
+                         acceptedAt: new Date(),
+                    },
+               });
+               if (accepted.count !== 1) {
+                    const latest = await tx.workspaceInvitation.findUnique({
+                         where: { id: invitation.id },
+                         select: { status: true },
+                    });
+                    throw new AppError(
+                         latest
+                              ? `This invitation is ${latest.status.toLowerCase()}.`
+                              : "Invalid invite link.",
+                         latest ? 400 : 404,
+                         latest ? `INVITE_${latest.status}` : "INVALID_INVITE",
+                    );
+               }
+
                const existingMember = await tx.workspaceMember.findUnique({
                     where: {
                          workspaceId_userId: {
@@ -255,7 +311,7 @@ export const invitationService = {
                               userId: currentUser.id,
                          },
                     },
-                    select: { id: true },
+                    select: { id: true, role: true },
                });
 
                if (!existingMember) {
@@ -268,20 +324,20 @@ export const invitationService = {
                     });
                }
 
-               await tx.workspaceInvitation.update({
-                    where: { id: invitation.id },
-                    data: {
-                         status: "ACCEPTED",
-                         acceptedAt: new Date(),
-                    },
-               });
-
                return {
-                    workspaceSlug: invitation.workspace.slug,
-                    workspaceId: invitation.workspace.id,
-                    role: invitation.role,
+                    expired: false as const,
+                    result: {
+                         workspaceSlug: invitation.workspace.slug,
+                         workspaceId: invitation.workspace.id,
+                         role: existingMember?.role ?? invitation.role,
+                    },
                };
           });
+
+          if (outcome.expired) {
+               throw new AppError("This invitation has expired.", 400, "INVITE_EXPIRED");
+          }
+          return outcome.result;
      },
 
      async declineInvite(
@@ -299,7 +355,7 @@ export const invitationService = {
 
           const currentUserEmail = currentUser.email.trim().toLowerCase();
 
-          return prisma.$transaction(async (tx) => {
+          const outcome = await prisma.$transaction(async (tx) => {
                const tokenHash = hashInviteToken(rawToken);
 
                const invitation = await tx.workspaceInvitation.findUnique({
@@ -319,11 +375,28 @@ export const invitationService = {
                }
 
                if (invitation.expiresAt < new Date()) {
-                    await tx.workspaceInvitation.update({
-                         where: { id: invitation.id },
+                    const expired = await tx.workspaceInvitation.updateMany({
+                         where: {
+                              id: invitation.id,
+                              status: "PENDING",
+                              expiresAt: { lt: new Date() },
+                         },
                          data: { status: "EXPIRED" },
                     });
-                    throw new AppError("This invitation has expired.", 400, "INVITE_EXPIRED");
+                    if (expired.count === 1) {
+                         return { expired: true as const };
+                    }
+                    const latest = await tx.workspaceInvitation.findUnique({
+                         where: { id: invitation.id },
+                         select: { status: true },
+                    });
+                    throw new AppError(
+                         latest
+                              ? `This invitation is ${latest.status.toLowerCase()}.`
+                              : "Invalid invite link.",
+                         latest ? 400 : 404,
+                         latest ? `INVITE_${latest.status}` : "INVALID_INVITE",
+                    );
                }
 
                if (currentUserEmail !== invitation.email.toLowerCase()) {
@@ -334,21 +407,45 @@ export const invitationService = {
                     );
                }
 
-               const updated = await tx.workspaceInvitation.update({
-                    where: { id: invitation.id },
+               const declined = await tx.workspaceInvitation.updateMany({
+                    where: {
+                         id: invitation.id,
+                         status: "PENDING",
+                         expiresAt: { gt: new Date() },
+                    },
                     data: { status: "DECLINED" },
-                    select: { status: true },
                });
+               if (declined.count !== 1) {
+                    const latest = await tx.workspaceInvitation.findUnique({
+                         where: { id: invitation.id },
+                         select: { status: true },
+                    });
+                    throw new AppError(
+                         latest
+                              ? `This invitation is ${latest.status.toLowerCase()}.`
+                              : "Invalid invite link.",
+                         latest ? 400 : 404,
+                         latest ? `INVITE_${latest.status}` : "INVALID_INVITE",
+                    );
+               }
 
-               return { status: updated.status };
+               return {
+                    expired: false as const,
+                    result: { status: "DECLINED" as const },
+               };
           });
+
+          if (outcome.expired) {
+               throw new AppError("This invitation has expired.", 400, "INVITE_EXPIRED");
+          }
+          return outcome.result;
      },
 
      async listWorkspaceInvites(
           workspaceId: string,
      ): Promise<WorkspaceInviteListItem[]> {
           return prisma.workspaceInvitation.findMany({
-               where: { workspaceId },
+               where: { workspaceId, status: "PENDING" },
                select: {
                     id: true,
                     email: true,

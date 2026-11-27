@@ -147,6 +147,21 @@ export const inviteLinkService = {
                data: {
                     inviteLinkEnabled: input.enabled,
                     defaultJoinRole: input.defaultJoinRole,
+                    ...(input.expiresInDays !== undefined
+                         ? {
+                                inviteCodeExpiresAt:
+                                     input.expiresInDays === null
+                                          ? null
+                                          : new Date(
+                                                 Date.now() +
+                                                      input.expiresInDays *
+                                                           24 *
+                                                           60 *
+                                                           60 *
+                                                           1000,
+                                            ),
+                           }
+                         : {}),
                },
                select: {
                     inviteCode: true,
@@ -228,10 +243,6 @@ export const inviteLinkService = {
 
           validateJoinableWorkspace(workspace);
 
-          if (workspace.ownerId === userId) {
-               throw new AppError("Already owner", 400, "ALREADY_OWNER");
-          }
-
           const existingMember = await prisma.workspaceMember.findUnique({
                where: {
                     workspaceId_userId: {
@@ -249,6 +260,15 @@ export const inviteLinkService = {
                     workspaceSlug: workspace.slug,
                     workspaceId: workspace.id,
                     role: existingMember.role,
+                    alreadyMember: true,
+               };
+          }
+
+          if (workspace.ownerId === userId) {
+               return {
+                    workspaceSlug: workspace.slug,
+                    workspaceId: workspace.id,
+                    role: "OWNER",
                     alreadyMember: true,
                };
           }

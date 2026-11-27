@@ -186,6 +186,10 @@ export const inviteApi = {
                     body: JSON.stringify({
                          enabled: payload.enabled,
                          defaultJoinRole: payload.defaultJoinRole,
+                         ...("expiresInDays" in payload &&
+                         payload.expiresInDays !== undefined
+                              ? { expiresInDays: payload.expiresInDays }
+                              : {}),
                     }),
                },
           );

@@ -39,6 +39,6 @@ export interface CreateWorkspacePayload {
 }
 
 export interface UpdateWorkspacePayload {
-     name?: string;
-     description?: string | null;
+     name: string;
+     slug: string;
 }

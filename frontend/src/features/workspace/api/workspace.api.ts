@@ -27,6 +27,17 @@ function normalizeWorkspaceSummary(raw: Record<string, unknown>): WorkspaceSumma
      };
 }
 
+function normalizeWorkspaceDetail(raw: Record<string, unknown>): WorkspaceDetail {
+     return {
+          ...normalizeWorkspaceSummary(raw),
+          ownerId: String(raw.ownerId ?? ""),
+          inviteCode: (raw.inviteCode as string | null) ?? null,
+          inviteCodeExpiresAt: (raw.inviteCodeExpiresAt as string | null) ?? null,
+          inviteLinkEnabled: Boolean(raw.inviteLinkEnabled ?? false),
+          defaultJoinRole: normalizeRole(raw.defaultJoinRole ?? "EDITOR"),
+     };
+}
+
 export const workspaceApi = {
      async listMyWorkspaces(): Promise<{ workspaces: WorkspaceSummary[] }> {
           const data = await apiFetch<{
@@ -48,18 +59,7 @@ export const workspaceApi = {
                     body: JSON.stringify(payload),
                },
           );
-          const base = normalizeWorkspaceSummary(data.workspace);
-          return {
-               workspace: {
-                    ...base,
-                    ownerId: String(data.workspace.ownerId ?? ""),
-                    inviteCode: (data.workspace.inviteCode as string | null) ?? null,
-                    inviteCodeExpiresAt:
-                         (data.workspace.inviteCodeExpiresAt as string | null) ?? null,
-                    inviteLinkEnabled: Boolean(data.workspace.inviteLinkEnabled ?? false),
-                    defaultJoinRole: normalizeRole(data.workspace.defaultJoinRole ?? "EDITOR"),
-               },
-          };
+          return { workspace: normalizeWorkspaceDetail(data.workspace) };
      },
 
      async getWorkspaceById(
@@ -74,7 +74,6 @@ export const workspaceApi = {
           }>(`/workspaces/${encodeURIComponent(workspaceId)}`);
 
           const rawWs = data.workspace ?? (data as unknown as Record<string, unknown>);
-          const base = normalizeWorkspaceSummary(rawWs);
           const members =
                data.members ??
                (Array.isArray(rawWs.members)
@@ -82,30 +81,23 @@ export const workspaceApi = {
                     : undefined);
 
           return {
-               workspace: {
-                    ...base,
-                    ownerId: String(rawWs.ownerId ?? ""),
-                    inviteCode: (rawWs.inviteCode as string | null) ?? null,
-                    inviteCodeExpiresAt:
-                         (rawWs.inviteCodeExpiresAt as string | null) ?? null,
-                    inviteLinkEnabled: Boolean(rawWs.inviteLinkEnabled ?? false),
-                    defaultJoinRole: normalizeRole(rawWs.defaultJoinRole ?? "EDITOR"),
-               },
+               workspace: normalizeWorkspaceDetail(rawWs),
                members,
           };
      },
 
-     updateWorkspace(
+     async updateWorkspace(
           workspaceId: string,
           payload: UpdateWorkspacePayload,
      ): Promise<{ workspace: WorkspaceDetail }> {
-          return apiFetch<{ workspace: WorkspaceDetail }>(
+          const data = await apiFetch<{ workspace: Record<string, unknown> }>(
                `/workspaces/${encodeURIComponent(workspaceId)}`,
                {
                     method: "PATCH",
                     body: JSON.stringify(payload),
                },
           );
+          return { workspace: normalizeWorkspaceDetail(data.workspace) };
      },
 
      deleteWorkspace(workspaceId: string): Promise<null> {
@@ -119,6 +111,51 @@ export const workspaceApi = {
      ): Promise<{ members: WorkspaceMemberItem[] }> {
           return apiFetch<{ members: WorkspaceMemberItem[] }>(
                `/workspaces/${encodeURIComponent(workspaceId)}/members`,
+          );
+     },
+
+     updateMemberRole(
+          workspaceId: string,
+          memberId: string,
+          role: Extract<WorkspaceRole, "EDITOR" | "VIEWER">,
+     ): Promise<{ member: WorkspaceMemberItem }> {
+          return apiFetch(
+               `/workspaces/${encodeURIComponent(workspaceId)}/members/${encodeURIComponent(memberId)}/role`,
+               {
+                    method: "PATCH",
+                    body: JSON.stringify({ role }),
+               },
+          );
+     },
+
+     removeMember(workspaceId: string, memberId: string): Promise<null> {
+          return apiFetch(
+               `/workspaces/${encodeURIComponent(workspaceId)}/members/${encodeURIComponent(memberId)}`,
+               { method: "DELETE" },
+          );
+     },
+
+     leaveWorkspace(workspaceId: string): Promise<null> {
+          return apiFetch(
+               `/workspaces/${encodeURIComponent(workspaceId)}/leave`,
+               { method: "POST" },
+          );
+     },
+
+     transferOwnership(
+          workspaceId: string,
+          payload: { newOwnerId: string },
+     ): Promise<{
+          workspaceId: string;
+          previousOwnerId: string;
+          newOwnerId: string;
+     }> {
+          return apiFetch(
+               `/workspaces/${encodeURIComponent(workspaceId)}/transfer-ownership`,
+               {
+                    method: "POST",
+                    body: JSON.stringify(payload),
+               },
           );
      },
 

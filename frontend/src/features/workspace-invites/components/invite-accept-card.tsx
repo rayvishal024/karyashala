@@ -10,7 +10,7 @@ import { ThemeToggle } from "@/shared/theme/theme-toggle";
 import { inviteApi } from "../api/invite.api";
 import type { InvitePreviewData } from "../types/invite.types";
 
-export function InviteAcceptCard({ token }: { token: string }) {
+function InviteAcceptCardContent({ token }: { token: string }) {
      const router = useRouter();
      const { user, isLoading: authLoading } = useAuth();
 
@@ -35,8 +35,6 @@ export function InviteAcceptCard({ token }: { token: string }) {
 
      useEffect(() => {
           let active = true;
-          setLoading(true);
-          setError(null);
 
           inviteApi
                .getInviteByToken(token)
@@ -45,11 +43,12 @@ export function InviteAcceptCard({ token }: { token: string }) {
                })
                .catch((err) => {
                     if (active) {
+                         setPreview(null);
                          setError(
                               err instanceof ApiClientError
-                                   ? err.message
-                                   : "This invitation is invalid or has expired.",
-                         );
+                                        ? err.message
+                                        : "This invitation is invalid or has expired.",
+                              );
                     }
                })
                .finally(() => {
@@ -243,4 +242,8 @@ export function InviteAcceptCard({ token }: { token: string }) {
                </main>
           </div>
      );
+}
+
+export function InviteAcceptCard({ token }: { token: string }) {
+     return <InviteAcceptCardContent key={token} token={token} />;
 }

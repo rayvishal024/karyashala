@@ -38,19 +38,18 @@ export function WorkspaceMembersPanel() {
 
      const [inviteModalOpen, setInviteModalOpen] = useState(false);
      const [transferModalOpen, setTransferModalOpen] = useState(false);
+     const workspaceId = currentWorkspace?.id;
 
      const loadData = useCallback(async () => {
-          if (!currentWorkspace?.id) return;
-          setLoading(true);
-          setError(null);
+          if (!workspaceId) return;
           try {
-               const membersRes = await workspaceApi.listMembers(currentWorkspace.id);
+               const membersRes = await workspaceApi.listMembers(workspaceId);
                setMembers(membersRes.members);
 
                if (canManageWorkspace) {
                     try {
                          const invitesRes = await inviteApi.listPendingInvites(
-                              currentWorkspace.id,
+                              workspaceId,
                          );
                          setInvitations(invitesRes.invitations);
                     } catch {
@@ -68,9 +67,10 @@ export function WorkspaceMembersPanel() {
           } finally {
                setLoading(false);
           }
-     }, [currentWorkspace?.id, canManageWorkspace]);
+     }, [workspaceId, canManageWorkspace]);
 
      useEffect(() => {
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- Load members when the workspace changes.
           loadData();
      }, [loadData]);
 

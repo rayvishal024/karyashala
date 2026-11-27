@@ -20,6 +20,7 @@ export function PendingInvitesList({
      onChanged,
 }: PendingInvitesListProps) {
      const [revokingId, setRevokingId] = useState<string | null>(null);
+     const [resendingId, setResendingId] = useState<string | null>(null);
      const [error, setError] = useState<string | null>(null);
 
      if (invitations.length === 0) {
@@ -27,7 +28,7 @@ export function PendingInvitesList({
      }
 
      const handleRevoke = async (inviteId: string) => {
-          if (!canManage || revokingId) return;
+          if (!canManage || revokingId || resendingId) return;
           setError(null);
           setRevokingId(inviteId);
           try {
@@ -41,6 +42,24 @@ export function PendingInvitesList({
                );
           } finally {
                setRevokingId(null);
+          }
+     };
+
+     const handleResend = async (inviteId: string) => {
+          if (!canManage || revokingId || resendingId) return;
+          setError(null);
+          setResendingId(inviteId);
+          try {
+               await inviteApi.resendInvite(workspaceId, inviteId);
+               onChanged();
+          } catch (err) {
+               setError(
+                    err instanceof ApiClientError
+                         ? err.message
+                         : "Failed to resend invitation.",
+               );
+          } finally {
+               setResendingId(null);
           }
      };
 
@@ -73,7 +92,6 @@ export function PendingInvitesList({
                     className="divide-y divide-[var(--border-hairline)] overflow-hidden rounded-lg border"
                >
                     {invitations.map((inv) => {
-                         const isExpired = new Date(inv.expiresAt).getTime() <= Date.now();
                          return (
                               <div
                                    key={inv.id}
@@ -85,9 +103,7 @@ export function PendingInvitesList({
                                              style={{ color: "var(--text-muted)" }}
                                              className="text-[11px]"
                                         >
-                                             {isExpired
-                                                  ? "Expired"
-                                                  : `Expires ${new Date(inv.expiresAt).toLocaleDateString()}`}
+                                             Expires {new Date(inv.expiresAt).toLocaleDateString()}
                                         </p>
                                    </div>
 
@@ -104,23 +120,51 @@ export function PendingInvitesList({
                                         </span>
 
                                         {canManage && (
-                                             <button
-                                                  type="button"
-                                                  onClick={() => handleRevoke(inv.id)}
-                                                  disabled={revokingId === inv.id}
-                                                  aria-label={`Revoke invite for ${inv.email}`}
-                                                  style={{
-                                                       backgroundColor: "var(--danger-bg)",
-                                                       borderColor: "var(--danger-border)",
-                                                       color: "var(--danger-text)",
-                                                  }}
-                                                  className="inline-flex h-7 cursor-pointer items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-opacity hover:opacity-85 disabled:opacity-50"
-                                             >
-                                                  <Trash2 className="h-3 w-3" />
-                                                  <span>
-                                                       {revokingId === inv.id ? "Revoking..." : "Revoke"}
-                                                  </span>
-                                             </button>
+                                             <>
+                                                  <button
+                                                       type="button"
+                                                       onClick={() => handleResend(inv.id)}
+                                                       disabled={
+                                                            revokingId !== null ||
+                                                            resendingId !== null
+                                                       }
+                                                       aria-label={`Resend invite to ${inv.email}`}
+                                                       style={{
+                                                            backgroundColor: "var(--bg-subtle)",
+                                                            borderColor: "var(--border-input)",
+                                                            color: "var(--text-secondary)",
+                                                       }}
+                                                       className="inline-flex h-7 cursor-pointer items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-opacity hover:opacity-85 disabled:opacity-50"
+                                                  >
+                                                       <span>
+                                                            {resendingId === inv.id
+                                                                 ? "Resending..."
+                                                                 : "Resend"}
+                                                       </span>
+                                                  </button>
+                                                  <button
+                                                       type="button"
+                                                       onClick={() => handleRevoke(inv.id)}
+                                                       disabled={
+                                                            revokingId !== null ||
+                                                            resendingId !== null
+                                                       }
+                                                       aria-label={`Revoke invite for ${inv.email}`}
+                                                       style={{
+                                                            backgroundColor: "var(--danger-bg)",
+                                                            borderColor: "var(--danger-border)",
+                                                            color: "var(--danger-text)",
+                                                       }}
+                                                       className="inline-flex h-7 cursor-pointer items-center gap-1 rounded-md border px-2 text-[11px] font-medium transition-opacity hover:opacity-85 disabled:opacity-50"
+                                                  >
+                                                       <Trash2 className="h-3 w-3" />
+                                                       <span>
+                                                            {revokingId === inv.id
+                                                                 ? "Revoking..."
+                                                                 : "Revoke"}
+                                                       </span>
+                                                  </button>
+                                             </>
                                         )}
                                    </div>
                               </div>

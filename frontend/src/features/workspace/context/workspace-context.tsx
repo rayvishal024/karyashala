@@ -35,6 +35,8 @@ interface WorkspaceContextValue {
           payload: UpdateWorkspacePayload,
      ) => Promise<WorkspaceDetail>;
      deleteCurrentWorkspace: () => Promise<void>;
+     leaveCurrentWorkspace: () => Promise<void>;
+     refreshCurrentWorkspace: () => Promise<WorkspaceDetail | null>;
      getLastVisitedSlug: () => string | null;
      clearWorkspaceState: () => void;
 }
@@ -78,6 +80,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
      }, []);
 
      useEffect(() => {
+          // eslint-disable-next-line react-hooks/set-state-in-effect -- Load the user's workspaces on mount.
           refreshWorkspaces();
      }, [refreshWorkspaces]);
 
@@ -169,6 +172,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
                     payload,
                );
                const updated = data.workspace;
+               await refreshWorkspaces();
                setCurrentWorkspace(updated);
                persistLastSlug(updated.slug);
                setWorkspaces((prev) =>
@@ -184,11 +188,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
                     ),
                );
                if (updated.slug !== currentWorkspace.slug) {
-                    router.replace(`/w/${updated.slug}`);
+                    router.replace(`/w/${updated.slug}/settings`);
                }
                return updated;
           },
-          [currentWorkspace, persistLastSlug, router],
+          [currentWorkspace, persistLastSlug, refreshWorkspaces, router],
      );
 
      const deleteCurrentWorkspace = useCallback(async (): Promise<void> => {
@@ -198,20 +202,38 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           const deletedId = currentWorkspace.id;
           await workspaceApi.deleteWorkspace(deletedId);
 
-          const remaining = workspaces.filter((w) => w.id !== deletedId);
-          setWorkspaces(remaining);
+          setWorkspaces((prev) => prev.filter((w) => w.id !== deletedId));
           setCurrentWorkspace(null);
-
-          if (remaining.length > 0) {
-               persistLastSlug(remaining[0].slug);
-               router.replace(`/w/${remaining[0].slug}`);
-          } else {
-               if (typeof window !== "undefined") {
-                    window.localStorage.removeItem(LAST_WORKSPACE_KEY);
-               }
-               router.replace("/dashboard");
+          if (typeof window !== "undefined") {
+               window.localStorage.removeItem(LAST_WORKSPACE_KEY);
           }
-     }, [currentWorkspace, persistLastSlug, router, workspaces]);
+          router.replace("/dashboard");
+     }, [currentWorkspace, router]);
+
+     const leaveCurrentWorkspace = useCallback(async (): Promise<void> => {
+          if (!currentWorkspace) {
+               throw new Error("No active workspace selected.");
+          }
+          const workspaceId = currentWorkspace.id;
+          await workspaceApi.leaveWorkspace(workspaceId);
+          setWorkspaces((prev) => prev.filter((w) => w.id !== workspaceId));
+          setCurrentWorkspace(null);
+          if (typeof window !== "undefined") {
+               window.localStorage.removeItem(LAST_WORKSPACE_KEY);
+          }
+          router.replace("/dashboard");
+     }, [currentWorkspace, router]);
+
+     const refreshCurrentWorkspace = useCallback(async (): Promise<WorkspaceDetail | null> => {
+          if (!currentWorkspace) return null;
+          const [data] = await Promise.all([
+               workspaceApi.getWorkspaceById(currentWorkspace.id),
+               refreshWorkspaces(),
+          ]);
+          setCurrentWorkspace(data.workspace);
+          persistLastSlug(data.workspace.slug);
+          return data.workspace;
+     }, [currentWorkspace, persistLastSlug, refreshWorkspaces]);
 
      const clearWorkspaceState = useCallback(() => {
           setCurrentWorkspace(null);
@@ -245,6 +267,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
                     createWorkspace,
                     updateCurrentWorkspace,
                     deleteCurrentWorkspace,
+                    leaveCurrentWorkspace,
+                    refreshCurrentWorkspace,
                     getLastVisitedSlug,
                     clearWorkspaceState,
                }}

@@ -13,6 +13,7 @@ export interface InviteLinkConfigResponse {
 export interface UpdateInviteLinkInput {
      enabled: boolean;
      defaultJoinRole: JoinableRole;
+     expiresInDays?: number | null;
 }
 
 export interface PublicJoinDetails {

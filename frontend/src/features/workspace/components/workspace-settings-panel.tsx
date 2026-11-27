@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { ApiClientError } from "@/lib/api-client";
 import { useWorkspace } from "../hooks/use-workspace";
 
@@ -12,21 +12,33 @@ export function WorkspaceSettingsPanel() {
           deleteCurrentWorkspace,
      } = useWorkspace();
 
-     const [name, setName] = useState("");
-     const [description, setDescription] = useState("");
+     const [formDraft, setFormDraft] = useState<{
+          workspaceId: string;
+          name: string | null;
+          slug: string | null;
+     }>({
+          workspaceId: "",
+          name: null,
+          slug: null,
+     });
      const [saving, setSaving] = useState(false);
      const [deleting, setDeleting] = useState(false);
+     const [confirmDelete, setConfirmDelete] = useState(false);
      const [statusMsg, setStatusMsg] = useState<string | null>(null);
      const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-     useEffect(() => {
-          if (currentWorkspace) {
-               setName(currentWorkspace.name);
-               setDescription(currentWorkspace.description ?? "");
-          }
-     }, [currentWorkspace]);
-
      if (!currentWorkspace) return null;
+
+     const formValues = {
+          name:
+               formDraft.workspaceId === currentWorkspace.id && formDraft.name !== null
+                    ? formDraft.name
+                    : currentWorkspace.name,
+          slug:
+               formDraft.workspaceId === currentWorkspace.id && formDraft.slug !== null
+                    ? formDraft.slug
+                    : currentWorkspace.slug,
+     };
 
      const handleSave = async (e: FormEvent) => {
           e.preventDefault();
@@ -36,9 +48,14 @@ export function WorkspaceSettingsPanel() {
           setSaving(true);
 
           try {
-               await updateCurrentWorkspace({
-                    name: name.trim(),
-                    description: description.trim() || null,
+               const updated = await updateCurrentWorkspace({
+                    name: formValues.name.trim(),
+                    slug: formValues.slug.trim().toLowerCase(),
+               });
+               setFormDraft({
+                    workspaceId: updated.id,
+                    name: updated.name,
+                    slug: updated.slug,
                });
                setStatusMsg("Workspace settings saved.");
           } catch (err) {
@@ -53,7 +70,7 @@ export function WorkspaceSettingsPanel() {
      };
 
      const handleDelete = async () => {
-          if (!canManageWorkspace || deleting) return;
+          if (!canManageWorkspace || deleting || !confirmDelete) return;
           setErrorMsg(null);
           setDeleting(true);
 
@@ -145,8 +162,19 @@ export function WorkspaceSettingsPanel() {
                               type="text"
                               required
                               disabled={!canManageWorkspace || saving}
-                              value={name}
-                              onChange={(e) => setName(e.target.value)}
+                              minLength={2}
+                              maxLength={80}
+                              value={formValues.name}
+                              onChange={(e) =>
+                                   setFormDraft((previous) => ({
+                                        workspaceId: currentWorkspace.id,
+                                        name: e.target.value,
+                                        slug:
+                                             previous.workspaceId === currentWorkspace.id
+                                                  ? previous.slug
+                                                  : currentWorkspace.slug,
+                                   }))
+                              }
                               style={{
                                    backgroundColor: "var(--bg-subtle)",
                                    borderColor: "var(--border-input)",
@@ -158,24 +186,46 @@ export function WorkspaceSettingsPanel() {
 
                     <div>
                          <label
-                              htmlFor="settings-desc"
+                              htmlFor="settings-slug"
                               className="mb-1.5 block text-xs font-medium"
                          >
-                              Description
+                              Workspace slug
                          </label>
-                         <textarea
-                              id="settings-desc"
-                              rows={3}
+                         <input
+                              id="settings-slug"
+                              type="text"
+                              required
+                              minLength={2}
+                              maxLength={60}
+                              pattern="[a-z0-9]+(-[a-z0-9]+)*"
                               disabled={!canManageWorkspace || saving}
-                              value={description}
-                              onChange={(e) => setDescription(e.target.value)}
+                              value={formValues.slug}
+                              onChange={(e) =>
+                                   setFormDraft((previous) => ({
+                                        workspaceId: currentWorkspace.id,
+                                        name:
+                                             previous.workspaceId === currentWorkspace.id
+                                                  ? previous.name
+                                                  : currentWorkspace.name,
+                                        slug: e.target.value
+                                             .toLowerCase()
+                                             .replace(/[^a-z0-9]+/g, "-")
+                                             .replace(/^-+|-+$/g, ""),
+                                   }))
+                              }
                               style={{
                                    backgroundColor: "var(--bg-subtle)",
                                    borderColor: "var(--border-input)",
                                    color: "var(--text-primary)",
                               }}
-                              className="w-full resize-none rounded-md border p-2.5 text-sm focus:outline-none disabled:opacity-60"
+                              className="h-9 w-full rounded-md border px-3 text-sm focus:outline-none disabled:opacity-60"
                          />
+                         <p
+                              style={{ color: "var(--text-muted)" }}
+                              className="mt-1 text-[11px]"
+                         >
+                              Use lowercase letters, numbers, and hyphens.
+                         </p>
                     </div>
 
                     {canManageWorkspace && (
@@ -216,19 +266,56 @@ export function WorkspaceSettingsPanel() {
                               Permanently deletes this workspace, its membership records, and
                               invitations. This cannot be undone.
                          </p>
-                         <button
-                              type="button"
-                              onClick={handleDelete}
-                              disabled={deleting}
-                              style={{
-                                   backgroundColor: "var(--danger-bg)",
-                                   borderColor: "var(--danger-border)",
-                                   color: "var(--danger-text)",
-                              }}
-                              className="mt-4 h-8 cursor-pointer rounded-md border px-3 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
-                         >
-                              {deleting ? "Deleting..." : "Delete workspace"}
-                         </button>
+                         {!confirmDelete ? (
+                              <button
+                                   type="button"
+                                   onClick={() => setConfirmDelete(true)}
+                                   disabled={deleting}
+                                   style={{
+                                        backgroundColor: "var(--danger-bg)",
+                                        borderColor: "var(--danger-border)",
+                                        color: "var(--danger-text)",
+                                   }}
+                                   className="mt-4 h-8 cursor-pointer rounded-md border px-3 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+                              >
+                                   Delete workspace
+                              </button>
+                         ) : (
+                              <div className="mt-4 flex flex-wrap items-center gap-2">
+                                   <span
+                                        style={{ color: "var(--danger-text)" }}
+                                        className="text-xs"
+                                   >
+                                        This action cannot be undone. Confirm deletion?
+                                   </span>
+                                   <button
+                                        type="button"
+                                        onClick={() => setConfirmDelete(false)}
+                                        disabled={deleting}
+                                        style={{
+                                             backgroundColor: "var(--bg-subtle)",
+                                             borderColor: "var(--border-input)",
+                                             color: "var(--text-secondary)",
+                                        }}
+                                        className="h-8 cursor-pointer rounded-md border px-3 text-xs font-medium disabled:opacity-50"
+                                   >
+                                        Cancel
+                                   </button>
+                                   <button
+                                        type="button"
+                                        onClick={handleDelete}
+                                        disabled={deleting}
+                                        style={{
+                                             backgroundColor: "var(--danger-bg)",
+                                             borderColor: "var(--danger-border)",
+                                             color: "var(--danger-text)",
+                                        }}
+                                        className="h-8 cursor-pointer rounded-md border px-3 text-xs font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
+                                   >
+                                        {deleting ? "Deleting..." : "Delete workspace"}
+                                   </button>
+                              </div>
+                         )}
                     </div>
                )}
           </div>

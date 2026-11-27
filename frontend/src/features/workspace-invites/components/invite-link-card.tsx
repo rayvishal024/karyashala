@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Copy, Check, RefreshCw, Link2 } from "lucide-react";
 import { ApiClientError } from "@/lib/api-client";
 import { useWorkspace } from "@/features/workspace";
@@ -21,21 +21,20 @@ export function InviteLinkCard({
 }: InviteLinkCardProps) {
      const { currentWorkspace, loadWorkspaceBySlug } = useWorkspace();
 
-     const [settings, setSettings] = useState<InviteLinkSettings | null>(null);
      const [updating, setUpdating] = useState(false);
      const [copiedKey, setCopiedKey] = useState<"code" | "link" | null>(null);
      const [error, setError] = useState<string | null>(null);
 
-     useEffect(() => {
-          if (currentWorkspace && currentWorkspace.id === workspaceId) {
-               setSettings({
-                    inviteCode: currentWorkspace.inviteCode ?? null,
-                    inviteCodeExpiresAt: currentWorkspace.inviteCodeExpiresAt ?? null,
-                    inviteLinkEnabled: Boolean(currentWorkspace.inviteLinkEnabled),
-                    defaultJoinRole: currentWorkspace.defaultJoinRole ?? "EDITOR",
-               });
-          }
-     }, [currentWorkspace, workspaceId]);
+     const settings: InviteLinkSettings | null =
+          currentWorkspace?.id === workspaceId
+               ? {
+                      inviteCode: currentWorkspace.inviteCode ?? null,
+                      inviteCodeExpiresAt:
+                           currentWorkspace.inviteCodeExpiresAt ?? null,
+                      inviteLinkEnabled: currentWorkspace.inviteLinkEnabled,
+                      defaultJoinRole: currentWorkspace.defaultJoinRole,
+                 }
+               : null;
 
      const joinUrl =
           typeof window !== "undefined" && settings?.inviteCode
@@ -66,11 +65,10 @@ export function InviteLinkCard({
           setError(null);
           setUpdating(true);
           try {
-               const res = await inviteApi.updateInviteLinkSettings(workspaceId, {
+               await inviteApi.updateInviteLinkSettings(workspaceId, {
                     enabled,
                     defaultJoinRole: settings.defaultJoinRole === "VIEWER" ? "VIEWER" : "EDITOR",
                });
-               setSettings(res.inviteLink);
                await syncWorkspace();
           } catch (err) {
                setError(
@@ -88,11 +86,10 @@ export function InviteLinkCard({
           setError(null);
           setUpdating(true);
           try {
-               const res = await inviteApi.updateInviteLinkSettings(workspaceId, {
+               await inviteApi.updateInviteLinkSettings(workspaceId, {
                     enabled: settings.inviteLinkEnabled,
                     defaultJoinRole,
                });
-               setSettings(res.inviteLink);
                await syncWorkspace();
           } catch (err) {
                setError(
@@ -110,16 +107,38 @@ export function InviteLinkCard({
           setError(null);
           setUpdating(true);
           try {
-               const res = await inviteApi.updateInviteLinkSettings(workspaceId, {
+               await inviteApi.updateInviteLinkSettings(workspaceId, {
                     regenerateCode: true,
                });
-               setSettings(res.inviteLink);
                await syncWorkspace();
           } catch (err) {
                setError(
                     err instanceof ApiClientError
                          ? err.message
                          : "Failed to regenerate invite code.",
+               );
+          } finally {
+               setUpdating(false);
+          }
+     };
+
+     const handleExpiryChange = async (value: string) => {
+          if (!canManage || updating || !settings || value === "custom") return;
+          setError(null);
+          setUpdating(true);
+          try {
+               await inviteApi.updateInviteLinkSettings(workspaceId, {
+                    enabled: settings.inviteLinkEnabled,
+                    defaultJoinRole:
+                         settings.defaultJoinRole === "VIEWER" ? "VIEWER" : "EDITOR",
+                    expiresInDays: value === "never" ? null : Number(value),
+               });
+               await syncWorkspace();
+          } catch (err) {
+               setError(
+                    err instanceof ApiClientError
+                         ? err.message
+                         : "Failed to update invite code expiry.",
                );
           } finally {
                setUpdating(false);
@@ -186,7 +205,7 @@ export function InviteLinkCard({
                     </p>
                ) : (
                     <div className="space-y-3">
-                         <div className="grid gap-3 sm:grid-cols-2">
+                         <div className="grid gap-3 sm:grid-cols-3">
                               <div>
                                    <span
                                         style={{ color: "var(--text-muted)" }}
@@ -251,6 +270,42 @@ export function InviteLinkCard({
                                    >
                                         <option value="EDITOR">EDITOR</option>
                                         <option value="VIEWER">VIEWER</option>
+                                   </select>
+                              </div>
+
+                              <div>
+                                   <span
+                                        style={{ color: "var(--text-muted)" }}
+                                        className="mb-1 block text-[11px] font-medium"
+                                   >
+                                        Invite code expiry
+                                   </span>
+                                   <select
+                                        value={
+                                             settings.inviteCodeExpiresAt ? "custom" : "never"
+                                        }
+                                        disabled={!canManage || updating}
+                                        onChange={(event) =>
+                                             void handleExpiryChange(event.target.value)
+                                        }
+                                        style={{
+                                             backgroundColor: "var(--bg-surface)",
+                                             borderColor: "var(--border-input)",
+                                             color: "var(--text-primary)",
+                                        }}
+                                        className="h-9 w-full rounded-md border px-3 text-xs font-medium focus:outline-none disabled:opacity-60"
+                                   >
+                                        <option value="custom" disabled>
+                                             {settings.inviteCodeExpiresAt
+                                                  ? `Current expiry (${new Date(
+                                                         settings.inviteCodeExpiresAt,
+                                                    ).toLocaleDateString()})`
+                                                  : "Custom"}
+                                        </option>
+                                        <option value="7">7 days</option>
+                                        <option value="30">30 days</option>
+                                        <option value="90">90 days</option>
+                                        <option value="never">Never</option>
                                    </select>
                               </div>
                          </div>
