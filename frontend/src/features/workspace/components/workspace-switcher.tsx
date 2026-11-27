@@ -15,7 +15,7 @@ export function WorkspaceSwitcher({
      onOpenJoinCode,
 }: WorkspaceSwitcherProps) {
      const router = useRouter();
-     const { workspaces, currentWorkspace } = useWorkspace();
+     const { workspaces, currentWorkspace, isLoadingList } = useWorkspace();
      const [open, setOpen] = useState(false);
      const containerRef = useRef<HTMLDivElement>(null);
 
@@ -99,11 +99,40 @@ export function WorkspaceSwitcher({
                               style={{ color: "var(--text-muted)" }}
                               className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider"
                          >
-                              Your Workspaces ({workspaces.length})
+                              Your Workspaces{!isLoadingList && ` (${workspaces.length})`}
                          </p>
 
                          <div className="max-h-52 space-y-0.5 overflow-y-auto">
-                              {workspaces.map((ws) => {
+                              {isLoadingList ? (
+                                   <div
+                                        aria-label="Loading workspaces"
+                                        aria-busy="true"
+                                        className="space-y-2 px-2 py-2"
+                                   >
+                                        {[0, 1, 2].map((row) => (
+                                             <div
+                                                  key={row}
+                                                  className="flex items-center gap-2"
+                                             >
+                                                  <div
+                                                       style={{ backgroundColor: "var(--bg-subtle)" }}
+                                                       className="h-5 w-5 animate-pulse rounded"
+                                                  />
+                                                  <div
+                                                       style={{ backgroundColor: "var(--bg-subtle)" }}
+                                                       className="h-3 w-28 animate-pulse rounded"
+                                                  />
+                                             </div>
+                                        ))}
+                                   </div>
+                              ) : workspaces.length === 0 ? (
+                                   <p
+                                        style={{ color: "var(--text-muted)" }}
+                                        className="px-2 py-2 text-[11px]"
+                                   >
+                                        No workspaces yet.
+                                   </p>
+                              ) : workspaces.map((ws) => {
                                    const isSelected = currentWorkspace?.id === ws.id;
                                    return (
                                         <button

@@ -6,6 +6,7 @@ import {
      useContext,
      useEffect,
      useMemo,
+     useRef,
      useState,
      type ReactNode,
 } from "react";
@@ -53,6 +54,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
      const [isLoadingList, setIsLoadingList] = useState(true);
      const [isLoadingCurrent, setIsLoadingCurrent] = useState(false);
      const [error, setError] = useState<string | null>(null);
+     const workspaceLoadId = useRef(0);
+     const workspaceListRef = useRef<WorkspaceSummary[]>([]);
+
+     const replaceWorkspaceList = useCallback((next: WorkspaceSummary[]) => {
+          workspaceListRef.current = next;
+          setWorkspaces(next);
+     }, []);
 
      const persistLastSlug = useCallback((slug: string) => {
           if (typeof window !== "undefined") {
@@ -69,15 +77,20 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           setIsLoadingList(true);
           try {
                const data = await workspaceApi.listMyWorkspaces();
-               setWorkspaces(data.workspaces);
+               replaceWorkspaceList(data.workspaces);
+               setError(null);
                return data.workspaces;
-          } catch {
-               setWorkspaces([]);
-               return [];
+          } catch (loadError) {
+               setError(
+                    loadError instanceof Error
+                         ? loadError.message
+                         : "Failed to load workspaces.",
+               );
+               return workspaceListRef.current;
           } finally {
                setIsLoadingList(false);
           }
-     }, []);
+     }, [replaceWorkspaceList]);
 
      useEffect(() => {
           // eslint-disable-next-line react-hooks/set-state-in-effect -- Load the user's workspaces on mount.
@@ -86,62 +99,57 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
      const loadWorkspaceBySlug = useCallback(
           async (slug: string): Promise<WorkspaceDetail | null> => {
+               const requestId = ++workspaceLoadId.current;
                setIsLoadingCurrent(true);
                setError(null);
                try {
-                    let list = workspaces;
-                    if (list.length === 0) {
+                    let list = workspaceListRef.current;
+                    if (list.length === 0 || !list.some((workspace) => workspace.slug === slug)) {
                          const res = await workspaceApi.listMyWorkspaces();
                          list = res.workspaces;
-                         setWorkspaces(list);
+                         replaceWorkspaceList(list);
                     }
 
                     const matched = list.find((w) => w.slug === slug);
                     if (!matched) {
-                         setCurrentWorkspace(null);
-                         setError(
-                              "Workspace not found or you do not have access to it.",
-                         );
+                         if (requestId === workspaceLoadId.current) {
+                              setCurrentWorkspace(null);
+                              setError(
+                                   "Workspace not found or you do not have access to it.",
+                              );
+                         }
                          return null;
                     }
 
-                    try {
-                         const detailRes = await workspaceApi.getWorkspaceById(matched.id);
-                         setCurrentWorkspace(detailRes.workspace);
-                         persistLastSlug(detailRes.workspace.slug);
-                         return detailRes.workspace;
-                    } catch {
-                         // Fallback to summary fields if owner-only fields are restricted
-                         const fallback: WorkspaceDetail = {
-                              ...matched,
-                              ownerId: "",
-                              inviteCode: null,
-                              inviteCodeExpiresAt: null,
-                              inviteLinkEnabled: false,
-                              defaultJoinRole: "EDITOR",
-                         };
-                         setCurrentWorkspace(fallback);
-                         persistLastSlug(fallback.slug);
-                         return fallback;
+                    const detailRes = await workspaceApi.getWorkspaceById(matched.id);
+                    if (requestId !== workspaceLoadId.current) return null;
+                    setCurrentWorkspace(detailRes.workspace);
+                    persistLastSlug(detailRes.workspace.slug);
+                    return detailRes.workspace;
+               } catch (loadError) {
+                    if (requestId === workspaceLoadId.current) {
+                         setCurrentWorkspace(null);
+                         setError(
+                              loadError instanceof Error
+                                   ? loadError.message
+                                   : "Failed to load workspace.",
+                         );
                     }
-               } catch (err) {
-                    setCurrentWorkspace(null);
-                    setError(
-                         err instanceof Error ? err.message : "Failed to load workspace.",
-                    );
                     return null;
                } finally {
-                    setIsLoadingCurrent(false);
+                    if (requestId === workspaceLoadId.current) {
+                         setIsLoadingCurrent(false);
+                    }
                }
           },
-          [persistLastSlug, workspaces],
+          [persistLastSlug, replaceWorkspaceList],
      );
 
      const createWorkspace = useCallback(
           async (payload: CreateWorkspacePayload): Promise<WorkspaceDetail> => {
                const data = await workspaceApi.createWorkspace(payload);
                const created = data.workspace;
-               setWorkspaces((prev) => [
+               replaceWorkspaceList([
                     {
                          id: created.id,
                          name: created.name,
@@ -152,14 +160,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
                          createdAt: created.createdAt,
                          updatedAt: created.updatedAt,
                     },
-                    ...prev,
+                    ...workspaceListRef.current,
                ]);
                setCurrentWorkspace(created);
                persistLastSlug(created.slug);
                router.push(`/w/${created.slug}`);
                return created;
           },
-          [persistLastSlug, router],
+          [persistLastSlug, replaceWorkspaceList, router],
      );
 
      const updateCurrentWorkspace = useCallback(
@@ -172,11 +180,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
                     payload,
                );
                const updated = data.workspace;
-               await refreshWorkspaces();
                setCurrentWorkspace(updated);
                persistLastSlug(updated.slug);
-               setWorkspaces((prev) =>
-                    prev.map((w) =>
+               replaceWorkspaceList(
+                    workspaceListRef.current.map((w) =>
                          w.id === updated.id
                               ? {
                                    ...w,
@@ -192,7 +199,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
                }
                return updated;
           },
-          [currentWorkspace, persistLastSlug, refreshWorkspaces, router],
+          [
+               currentWorkspace,
+               persistLastSlug,
+               replaceWorkspaceList,
+               router,
+          ],
      );
 
      const deleteCurrentWorkspace = useCallback(async (): Promise<void> => {
@@ -202,13 +214,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           const deletedId = currentWorkspace.id;
           await workspaceApi.deleteWorkspace(deletedId);
 
-          setWorkspaces((prev) => prev.filter((w) => w.id !== deletedId));
+          replaceWorkspaceList(
+               workspaceListRef.current.filter((w) => w.id !== deletedId),
+          );
           setCurrentWorkspace(null);
           if (typeof window !== "undefined") {
                window.localStorage.removeItem(LAST_WORKSPACE_KEY);
           }
           router.replace("/dashboard");
-     }, [currentWorkspace, router]);
+     }, [currentWorkspace, replaceWorkspaceList, router]);
 
      const leaveCurrentWorkspace = useCallback(async (): Promise<void> => {
           if (!currentWorkspace) {
@@ -216,13 +230,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           }
           const workspaceId = currentWorkspace.id;
           await workspaceApi.leaveWorkspace(workspaceId);
-          setWorkspaces((prev) => prev.filter((w) => w.id !== workspaceId));
+          replaceWorkspaceList(
+               workspaceListRef.current.filter((w) => w.id !== workspaceId),
+          );
           setCurrentWorkspace(null);
           if (typeof window !== "undefined") {
                window.localStorage.removeItem(LAST_WORKSPACE_KEY);
           }
           router.replace("/dashboard");
-     }, [currentWorkspace, router]);
+     }, [currentWorkspace, replaceWorkspaceList, router]);
 
      const refreshCurrentWorkspace = useCallback(async (): Promise<WorkspaceDetail | null> => {
           if (!currentWorkspace) return null;

@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { prisma } from "../../config/prisma.js";
 import { env } from "../../config/index.js";
 import { AppError } from "../../shared/errors/index.js";
+import { withTransientDbRetry } from "../../shared/db-retry.js";
 import type {
      InviteLinkConfigResponse,
      JoinWorkspaceResult,
@@ -49,14 +50,13 @@ async function generateUniqueInviteCode(): Promise<string> {
 
 function validateJoinableWorkspace(workspace: {
      id: string;
-     name: string;
      slug: string;
      ownerId: string;
      inviteCode: string | null;
      inviteCodeExpiresAt: Date | null;
      inviteLinkEnabled: boolean;
      defaultJoinRole: InviteLinkConfigResponse["defaultJoinRole"];
-     owner: { name: string };
+     owner?: { name: string };
 }) {
      if (!workspace.inviteCode) {
           throw new AppError("Invalid invite code.", 404, "INVALID_INVITE_CODE");
@@ -86,15 +86,17 @@ export const inviteLinkService = {
      async getInviteLinkConfig(
           workspaceId: string,
      ): Promise<InviteLinkConfigResponse> {
-          const workspace = await prisma.workspace.findUnique({
-               where: { id: workspaceId },
-               select: {
-                    inviteCode: true,
-                    inviteCodeExpiresAt: true,
-                    inviteLinkEnabled: true,
-                    defaultJoinRole: true,
-               },
-          });
+          const workspace = await withTransientDbRetry(() =>
+               prisma.workspace.findUnique({
+                    where: { id: workspaceId },
+                    select: {
+                         inviteCode: true,
+                         inviteCodeExpiresAt: true,
+                         inviteLinkEnabled: true,
+                         defaultJoinRole: true,
+                    },
+               }),
+          );
 
           if (!workspace) {
                throw new AppError("Workspace not found.", 404, "WORKSPACE_NOT_FOUND");
@@ -183,22 +185,24 @@ export const inviteLinkService = {
      async getPublicJoinDetails(rawCode: string): Promise<PublicJoinDetails> {
           const normalizedCode = rawCode.trim().toUpperCase();
 
-          const workspace = await prisma.workspace.findUnique({
-               where: { inviteCode: normalizedCode },
-               select: {
-                    id: true,
-                    name: true,
-                    slug: true,
-                    ownerId: true,
-                    inviteCode: true,
-                    inviteCodeExpiresAt: true,
-                    inviteLinkEnabled: true,
-                    defaultJoinRole: true,
-                    owner: {
-                         select: { name: true },
+          const workspace = await withTransientDbRetry(() =>
+               prisma.workspace.findUnique({
+                    where: { inviteCode: normalizedCode },
+                    select: {
+                         id: true,
+                         name: true,
+                         slug: true,
+                         ownerId: true,
+                         inviteCode: true,
+                         inviteCodeExpiresAt: true,
+                         inviteLinkEnabled: true,
+                         defaultJoinRole: true,
+                         owner: {
+                              select: { name: true },
+                         },
                     },
-               },
-          });
+               }),
+          );
 
           if (!workspace) {
                throw new AppError("Invalid invite code.", 404, "INVALID_INVITE_CODE");
@@ -219,43 +223,103 @@ export const inviteLinkService = {
           userId: string,
      ): Promise<JoinWorkspaceResult> {
           const normalizedCode = rawCode.trim().toUpperCase();
+          try {
+               return await prisma.$transaction(async (tx) => {
+                    const workspace = await tx.workspace.findUnique({
+                         where: { inviteCode: normalizedCode },
+                         select: {
+                              id: true,
+                              slug: true,
+                              ownerId: true,
+                              inviteCode: true,
+                              inviteCodeExpiresAt: true,
+                              inviteLinkEnabled: true,
+                              defaultJoinRole: true,
+                         },
+                    });
 
-          const workspace = await prisma.workspace.findUnique({
-               where: { inviteCode: normalizedCode },
-               select: {
-                    id: true,
-                    name: true,
-                    slug: true,
-                    ownerId: true,
-                    inviteCode: true,
-                    inviteCodeExpiresAt: true,
-                    inviteLinkEnabled: true,
-                    defaultJoinRole: true,
-                    owner: {
-                         select: { name: true },
-                    },
-               },
-          });
+                    if (!workspace) {
+                         throw new AppError(
+                              "Invalid invite code.",
+                              404,
+                              "INVALID_INVITE_CODE",
+                         );
+                    }
+                    validateJoinableWorkspace(workspace);
 
-          if (!workspace) {
-               throw new AppError("Invalid invite code.", 404, "INVALID_INVITE_CODE");
-          }
+                    const existingMember = await tx.workspaceMember.findUnique({
+                         where: {
+                              workspaceId_userId: {
+                                   workspaceId: workspace.id,
+                                   userId,
+                              },
+                         },
+                         select: { role: true },
+                    });
 
-          validateJoinableWorkspace(workspace);
+                    if (existingMember) {
+                         return {
+                              workspaceSlug: workspace.slug,
+                              workspaceId: workspace.id,
+                              role: existingMember.role,
+                              alreadyMember: true,
+                         };
+                    }
 
-          const existingMember = await prisma.workspaceMember.findUnique({
-               where: {
-                    workspaceId_userId: {
+                    if (workspace.ownerId === userId) {
+                         return {
+                              workspaceSlug: workspace.slug,
+                              workspaceId: workspace.id,
+                              role: "OWNER" as const,
+                              alreadyMember: true,
+                         };
+                    }
+
+                    const member = await tx.workspaceMember.create({
+                         data: {
+                              workspaceId: workspace.id,
+                              userId,
+                              role: workspace.defaultJoinRole,
+                         },
+                         select: { role: true },
+                    });
+
+                    return {
+                         workspaceSlug: workspace.slug,
                          workspaceId: workspace.id,
-                         userId,
-                    },
-               },
-               select: {
-                    role: true,
-               },
-          });
+                         role: member.role,
+                         alreadyMember: false,
+                    };
+               });
+          } catch (error) {
+               const isUniqueConflict =
+                    !!error &&
+                    typeof error === "object" &&
+                    "code" in error &&
+                    error.code === "P2002";
+               if (!isUniqueConflict) throw error;
 
-          if (existingMember) {
+               const workspace = await withTransientDbRetry(() =>
+                    prisma.workspace.findUnique({
+                         where: { inviteCode: normalizedCode },
+                         select: { id: true, slug: true },
+                    }),
+               );
+               if (!workspace) throw error;
+
+               const existingMember = await withTransientDbRetry(() =>
+                    prisma.workspaceMember.findUnique({
+                         where: {
+                              workspaceId_userId: {
+                                   workspaceId: workspace.id,
+                                   userId,
+                              },
+                         },
+                         select: { role: true },
+                    }),
+               );
+               if (!existingMember) throw error;
+
                return {
                     workspaceSlug: workspace.slug,
                     workspaceId: workspace.id,
@@ -263,32 +327,5 @@ export const inviteLinkService = {
                     alreadyMember: true,
                };
           }
-
-          if (workspace.ownerId === userId) {
-               return {
-                    workspaceSlug: workspace.slug,
-                    workspaceId: workspace.id,
-                    role: "OWNER",
-                    alreadyMember: true,
-               };
-          }
-
-          const member = await prisma.workspaceMember.create({
-               data: {
-                    workspaceId: workspace.id,
-                    userId,
-                    role: workspace.defaultJoinRole,
-               },
-               select: {
-                    role: true,
-               },
-          });
-
-          return {
-               workspaceSlug: workspace.slug,
-               workspaceId: workspace.id,
-               role: member.role,
-               alreadyMember: false,
-          };
      },
 };

@@ -11,6 +11,7 @@ interface PendingInvitesListProps {
      invitations: WorkspaceInvitationItem[];
      canManage: boolean;
      onChanged: () => void;
+     loading?: boolean;
 }
 
 export function PendingInvitesList({
@@ -18,12 +19,13 @@ export function PendingInvitesList({
      invitations,
      canManage,
      onChanged,
+     loading = false,
 }: PendingInvitesListProps) {
      const [revokingId, setRevokingId] = useState<string | null>(null);
      const [resendingId, setResendingId] = useState<string | null>(null);
      const [error, setError] = useState<string | null>(null);
 
-     if (invitations.length === 0) {
+     if (invitations.length === 0 && !loading) {
           return null;
      }
 
@@ -67,7 +69,8 @@ export function PendingInvitesList({
           <div className="space-y-2.5">
                <div className="flex items-center justify-between">
                     <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
-                         Pending Email Invitations ({invitations.length})
+                         Pending Email Invitations
+                         {!loading && ` (${invitations.length})`}
                     </h2>
                </div>
 
@@ -91,6 +94,29 @@ export function PendingInvitesList({
                     }}
                     className="divide-y divide-[var(--border-hairline)] overflow-hidden rounded-lg border"
                >
+                    {loading &&
+                         [0, 1].map((row) => (
+                              <div
+                                   key={row}
+                                   aria-hidden="true"
+                                   className="flex items-center justify-between gap-4 px-4 py-3"
+                              >
+                                   <div className="min-w-0 flex-1 space-y-2">
+                                        <div
+                                             style={{ backgroundColor: "var(--bg-subtle)" }}
+                                             className="h-3 w-44 animate-pulse rounded"
+                                        />
+                                        <div
+                                             style={{ backgroundColor: "var(--bg-subtle)" }}
+                                             className="h-2.5 w-28 animate-pulse rounded"
+                                        />
+                                   </div>
+                                   <div
+                                        style={{ backgroundColor: "var(--bg-subtle)" }}
+                                        className="h-7 w-24 animate-pulse rounded"
+                                   />
+                              </div>
+                         ))}
                     {invitations.map((inv) => {
                          return (
                               <div

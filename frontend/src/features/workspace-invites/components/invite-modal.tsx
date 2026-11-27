@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Mail, Link2, X, Check } from "lucide-react";
 import { ApiClientError } from "@/lib/api-client";
 import { inviteApi } from "../api/invite.api";
@@ -33,6 +33,15 @@ export function InviteModal({
      const [successMsg, setSuccessMsg] = useState<string | null>(null);
      const [submitting, setSubmitting] = useState(false);
 
+     useEffect(() => {
+          if (!open) return;
+          const handleKeyDown = (event: KeyboardEvent) => {
+               if (event.key === "Escape" && !submitting) onClose();
+          };
+          window.addEventListener("keydown", handleKeyDown);
+          return () => window.removeEventListener("keydown", handleKeyDown);
+     }, [onClose, open, submitting]);
+
      if (!open) return null;
 
      const handleEmailSubmit = async (e: FormEvent) => {
@@ -63,7 +72,7 @@ export function InviteModal({
 
      return (
           <div
-               className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
+               className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4"
                onMouseDown={(e) => {
                     if (e.target === e.currentTarget && !submitting) onClose();
                }}
@@ -71,6 +80,7 @@ export function InviteModal({
                <div
                     role="dialog"
                     aria-modal="true"
+                    aria-labelledby="invite-modal-title"
                     style={{
                          backgroundColor: "var(--bg-surface)",
                          borderColor: "var(--border-hairline)",
@@ -80,7 +90,7 @@ export function InviteModal({
                >
                     <div className="flex items-start justify-between gap-3">
                          <div>
-                              <h2 className="text-base font-semibold tracking-tight">
+                              <h2 id="invite-modal-title" className="text-base font-semibold tracking-tight">
                                    Invite people to {workspaceName}
                               </h2>
                               <p

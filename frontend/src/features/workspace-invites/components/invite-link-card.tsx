@@ -200,9 +200,34 @@ export function InviteLinkCard({
                )}
 
                {!settings ? (
-                    <p style={{ color: "var(--text-muted)" }} className="text-xs">
-                         Loading invite link details...
-                    </p>
+                    <div
+                         role="status"
+                         aria-label="Loading invite link details"
+                         aria-busy="true"
+                         className="space-y-3"
+                    >
+                         <div className="grid gap-3 sm:grid-cols-3">
+                              {[0, 1, 2].map((item) => (
+                                   <div key={item} className="space-y-2">
+                                        <div
+                                             style={{ backgroundColor: "var(--bg-hover)" }}
+                                             className="h-2.5 w-24 animate-pulse rounded"
+                                        />
+                                        <div
+                                             style={{
+                                                  backgroundColor: "var(--bg-surface)",
+                                                  borderColor: "var(--border-input)",
+                                             }}
+                                             className="h-9 animate-pulse rounded-md border"
+                                        />
+                                   </div>
+                              ))}
+                         </div>
+                         <div
+                              style={{ backgroundColor: "var(--bg-hover)" }}
+                              className="h-3 w-56 max-w-full animate-pulse rounded"
+                         />
+                    </div>
                ) : (
                     <div className="space-y-3">
                          <div className="grid gap-3 sm:grid-cols-3">

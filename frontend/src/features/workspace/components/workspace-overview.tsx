@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { UserPlus, Users, Shield, Hash, Link2 } from "lucide-react";
+import { UserPlus, Users, Shield, Hash, Link2, Settings } from "lucide-react";
 import { InviteModal } from "@/features/workspace-invites/components/invite-modal";
 import { useWorkspace } from "../hooks/use-workspace";
 
@@ -60,6 +60,18 @@ export function WorkspaceOverview() {
                          >
                               <Users className="h-3.5 w-3.5" />
                               <span>Members</span>
+                         </Link>
+                         <Link
+                              href={`/w/${currentWorkspace.slug}/settings`}
+                              style={{
+                                   backgroundColor: "var(--bg-surface)",
+                                   borderColor: "var(--border-input)",
+                                   color: "var(--text-primary)",
+                              }}
+                              className="inline-flex h-8 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-opacity hover:opacity-90"
+                         >
+                              <Settings className="h-3.5 w-3.5" />
+                              <span>Settings</span>
                          </Link>
 
                          <button

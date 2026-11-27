@@ -1,6 +1,7 @@
 import { prisma } from "../../config/prisma.js";
 import type { InviteStatus, WorkspaceRole } from "../../generated/prisma/client.js";
 import { AppError } from "../../shared/errors/index.js";
+import { withTransientDbRetry } from "../../shared/db-retry.js";
 import type {
      CreateInviteInput,
      PublicInviteDetails,
@@ -16,25 +17,29 @@ import {
 async function findAndNormalizeInviteByRawToken(rawToken: string) {
      const tokenHash = hashInviteToken(rawToken);
 
-     const invitation = await prisma.workspaceInvitation.findUnique({
-          where: { tokenHash },
-          include: {
-               workspace: {
-                    select: {
-                         id: true,
-                         name: true,
-                         slug: true,
+     const invitation = await withTransientDbRetry(() =>
+          prisma.workspaceInvitation.findUnique({
+               where: { tokenHash },
+               select: {
+                    id: true,
+                    email: true,
+                    role: true,
+                    status: true,
+                    expiresAt: true,
+                    workspace: {
+                         select: {
+                              name: true,
+                              slug: true,
+                         },
+                    },
+                    invitedBy: {
+                         select: {
+                              name: true,
+                         },
                     },
                },
-               invitedBy: {
-                    select: {
-                         id: true,
-                         name: true,
-                         email: true,
-                    },
-               },
-          },
-     });
+          }),
+     );
 
      if (!invitation) {
           throw new AppError("Invalid invite link.", 404, "INVALID_INVITE");
@@ -54,25 +59,29 @@ async function findAndNormalizeInviteByRawToken(rawToken: string) {
                return { ...invitation, status: "EXPIRED" as const };
           }
 
-          const latest = await prisma.workspaceInvitation.findUnique({
-               where: { tokenHash },
-               include: {
-                    workspace: {
-                         select: {
-                              id: true,
-                              name: true,
-                              slug: true,
+          const latest = await withTransientDbRetry(() =>
+               prisma.workspaceInvitation.findUnique({
+                    where: { tokenHash },
+                    select: {
+                         id: true,
+                         email: true,
+                         role: true,
+                         status: true,
+                         expiresAt: true,
+                         workspace: {
+                              select: {
+                                   name: true,
+                                   slug: true,
+                              },
+                         },
+                         invitedBy: {
+                              select: {
+                                   name: true,
+                              },
                          },
                     },
-                    invitedBy: {
-                         select: {
-                              id: true,
-                              name: true,
-                              email: true,
-                         },
-                    },
-               },
-          });
+               }),
+          );
           if (!latest) {
                throw new AppError("Invalid invite link.", 404, "INVALID_INVITE");
           }
@@ -90,40 +99,48 @@ export const invitationService = {
      ): Promise<{ id: string; email: string; role: WorkspaceRole; status: InviteStatus; expiresAt: Date }> {
           const normalizedEmail = input.email.trim().toLowerCase();
 
-          const workspace = await prisma.workspace.findUnique({
-               where: { id: workspaceId },
-               select: { id: true, name: true },
-          });
+          const [workspace, inviter, existingUser] = await Promise.all([
+               withTransientDbRetry(() =>
+                    prisma.workspace.findUnique({
+                         where: { id: workspaceId },
+                         select: { id: true, name: true },
+                    }),
+               ),
+               withTransientDbRetry(() =>
+                    prisma.user.findUnique({
+                         where: { id: invitedById },
+                         select: { id: true, name: true },
+                    }),
+               ),
+               withTransientDbRetry(() =>
+                    prisma.user.findUnique({
+                         where: { email: normalizedEmail },
+                         select: { id: true },
+                    }),
+               ),
+          ]);
 
           if (!workspace) {
                throw new AppError("Workspace not found.", 404, "WORKSPACE_NOT_FOUND");
           }
-
-          const inviter = await prisma.user.findUnique({
-               where: { id: invitedById },
-               select: { id: true, name: true },
-          });
 
           if (!inviter) {
                throw new AppError("Inviter account not found.", 404, "USER_NOT_FOUND");
           }
 
           // Check if target email already belongs to an existing workspace member
-          const existingUser = await prisma.user.findUnique({
-               where: { email: normalizedEmail },
-               select: { id: true },
-          });
-
           if (existingUser) {
-               const existingMember = await prisma.workspaceMember.findUnique({
-                    where: {
-                         workspaceId_userId: {
-                              workspaceId,
-                              userId: existingUser.id,
+               const existingMember = await withTransientDbRetry(() =>
+                    prisma.workspaceMember.findUnique({
+                         where: {
+                              workspaceId_userId: {
+                                   workspaceId,
+                                   userId: existingUser.id,
+                              },
                          },
-                    },
-                    select: { id: true },
-               });
+                         select: { id: true },
+                    }),
+               );
 
                if (existingMember) {
                     throw new AppError("Already a member", 400, "ALREADY_MEMBER");
@@ -131,14 +148,20 @@ export const invitationService = {
           }
 
           // Check for an existing PENDING invite for same workspaceId + email
-          const existingPending = await prisma.workspaceInvitation.findFirst({
-               where: {
-                    workspaceId,
-                    email: normalizedEmail,
-                    status: "PENDING",
-               },
-               orderBy: { createdAt: "desc" },
-          });
+          const existingPending = await withTransientDbRetry(() =>
+               prisma.workspaceInvitation.findFirst({
+                    where: {
+                         workspaceId,
+                         email: normalizedEmail,
+                         status: "PENDING",
+                    },
+                    select: {
+                         id: true,
+                         expiresAt: true,
+                    },
+                    orderBy: { createdAt: "desc" },
+               }),
+          );
 
           if (existingPending) {
                if (existingPending.expiresAt < new Date()) {
@@ -444,7 +467,8 @@ export const invitationService = {
      async listWorkspaceInvites(
           workspaceId: string,
      ): Promise<WorkspaceInviteListItem[]> {
-          return prisma.workspaceInvitation.findMany({
+          return withTransientDbRetry(() =>
+               prisma.workspaceInvitation.findMany({
                where: { workspaceId, status: "PENDING" },
                select: {
                     id: true,
@@ -457,7 +481,8 @@ export const invitationService = {
                     updatedAt: true,
                },
                orderBy: { createdAt: "desc" },
-          });
+               }),
+          );
      },
 
      async resendInvite(
@@ -465,17 +490,23 @@ export const invitationService = {
           inviteId: string,
           actorUserId: string,
      ): Promise<WorkspaceInviteListItem> {
-          const invitation = await prisma.workspaceInvitation.findFirst({
-               where: {
-                    id: inviteId,
-                    workspaceId,
-               },
-               include: {
+          const invitation = await withTransientDbRetry(() =>
+               prisma.workspaceInvitation.findFirst({
+                    where: {
+                         id: inviteId,
+                         workspaceId,
+                    },
+                    select: {
+                         id: true,
+                         email: true,
+                         role: true,
+                         status: true,
                     workspace: {
                          select: { name: true },
                     },
-               },
-          });
+                    },
+               }),
+          );
 
           if (!invitation) {
                throw new AppError("Invitation not found.", 404, "INVITE_NOT_FOUND");
@@ -489,10 +520,12 @@ export const invitationService = {
                );
           }
 
-          const sender = await prisma.user.findUnique({
-               where: { id: actorUserId },
-               select: { name: true },
-          });
+          const sender = await withTransientDbRetry(() =>
+               prisma.user.findUnique({
+                    where: { id: actorUserId },
+                    select: { name: true },
+               }),
+          );
 
           const rawToken = generateRawInviteToken();
           const tokenHash = hashInviteToken(rawToken);
@@ -531,12 +564,18 @@ export const invitationService = {
           workspaceId: string,
           inviteId: string,
      ): Promise<WorkspaceInviteListItem> {
-          const invitation = await prisma.workspaceInvitation.findFirst({
-               where: {
-                    id: inviteId,
-                    workspaceId,
-               },
-          });
+          const invitation = await withTransientDbRetry(() =>
+               prisma.workspaceInvitation.findFirst({
+                    where: {
+                         id: inviteId,
+                         workspaceId,
+                    },
+                    select: {
+                         id: true,
+                         status: true,
+                    },
+               }),
+          );
 
           if (!invitation) {
                throw new AppError("Invitation not found.", 404, "INVITE_NOT_FOUND");

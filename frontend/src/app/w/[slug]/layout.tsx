@@ -48,7 +48,8 @@ function WorkspaceShell({
 
                <main className="min-w-0 flex-1 px-6 py-8">
                     <div className="mx-auto max-w-5xl">
-                         {isLoadingCurrent ? (
+                         {isLoadingCurrent ||
+                         (!error && currentWorkspace?.slug !== slug) ? (
                               <div className="space-y-4">
                                    <div
                                         style={{ backgroundColor: "var(--bg-surface)" }}

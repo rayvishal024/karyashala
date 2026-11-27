@@ -28,6 +28,11 @@ export function WorkspaceMembersPanel() {
      const [loading, setLoading] = useState(true);
      const [pendingMemberId, setPendingMemberId] = useState<string | null>(null);
      const [leaving, setLeaving] = useState(false);
+     const [confirmingLeave, setConfirmingLeave] = useState(false);
+     const [confirmingMemberAction, setConfirmingMemberAction] = useState<{
+          memberId: string;
+          action: "transfer" | "remove";
+     } | null>(null);
      const [error, setError] = useState<string | null>(null);
      const [status, setStatus] = useState<string | null>(null);
      const [inviteOpen, setInviteOpen] = useState(false);
@@ -97,13 +102,6 @@ export function WorkspaceMembersPanel() {
      };
 
      const handleTransferOwnership = async (member: WorkspaceMemberItem) => {
-          if (
-               !window.confirm(
-                    `Transfer workspace ownership to ${member.user.name}? You will become an editor.`,
-               )
-          ) {
-               return;
-          }
           setPendingMemberId(member.id);
           setError(null);
           setStatus(null);
@@ -112,6 +110,7 @@ export function WorkspaceMembersPanel() {
                     newOwnerId: member.userId,
                });
                await Promise.all([refreshCurrentWorkspace(), loadMembers()]);
+               setConfirmingMemberAction(null);
                setStatus(`Ownership transferred to ${member.user.name}.`);
           } catch (err) {
                setError(
@@ -125,9 +124,6 @@ export function WorkspaceMembersPanel() {
      };
 
      const handleRemoveMember = async (member: WorkspaceMemberItem) => {
-          if (!window.confirm(`Remove ${member.user.name} from this workspace?`)) {
-               return;
-          }
           setPendingMemberId(member.id);
           setError(null);
           setStatus(null);
@@ -136,6 +132,7 @@ export function WorkspaceMembersPanel() {
                setMembers((previous) =>
                     previous.filter((item) => item.id !== member.id),
                );
+               setConfirmingMemberAction(null);
                setStatus(`${member.user.name} was removed from the workspace.`);
           } catch (err) {
                setError(
@@ -149,7 +146,6 @@ export function WorkspaceMembersPanel() {
      };
 
      const handleLeaveWorkspace = async () => {
-          if (!window.confirm("Leave this workspace?")) return;
           setLeaving(true);
           setError(null);
           try {
@@ -193,7 +189,7 @@ export function WorkspaceMembersPanel() {
                     {currentWorkspace.role !== "OWNER" && (
                          <button
                               type="button"
-                              onClick={handleLeaveWorkspace}
+                              onClick={() => setConfirmingLeave(true)}
                               disabled={leaving}
                               style={{
                                    backgroundColor: "var(--danger-bg)",
@@ -202,10 +198,55 @@ export function WorkspaceMembersPanel() {
                               }}
                               className="h-8 cursor-pointer rounded-md border px-3 text-xs font-medium disabled:opacity-50"
                          >
-                              {leaving ? "Leaving..." : "Leave workspace"}
+                              Leave workspace
                          </button>
                     )}
                </div>
+
+               {confirmingLeave && (
+                    <div
+                         role="group"
+                         aria-label="Confirm leaving workspace"
+                         style={{
+                              backgroundColor: "var(--danger-bg)",
+                              borderColor: "var(--danger-border)",
+                              color: "var(--danger-text)",
+                         }}
+                         className="flex flex-wrap items-center justify-between gap-3 rounded-md border px-3 py-2.5 text-xs"
+                    >
+                         <span>
+                              Leave <strong className="font-semibold">{currentWorkspace.name}</strong>?
+                              You will need a new invitation to rejoin.
+                         </span>
+                         <div className="flex items-center gap-2">
+                              <button
+                                   type="button"
+                                   onClick={() => setConfirmingLeave(false)}
+                                   disabled={leaving}
+                                   style={{
+                                        backgroundColor: "var(--bg-surface)",
+                                        borderColor: "var(--border-input)",
+                                        color: "var(--text-secondary)",
+                                   }}
+                                   className="h-7 cursor-pointer rounded-md border px-2.5 text-[11px] font-medium disabled:opacity-50"
+                              >
+                                   Cancel
+                              </button>
+                              <button
+                                   type="button"
+                                   onClick={() => void handleLeaveWorkspace()}
+                                   disabled={leaving}
+                                   style={{
+                                        backgroundColor: "var(--danger-text)",
+                                        color: "var(--bg-canvas)",
+                                   }}
+                                   className="h-7 cursor-pointer rounded-md px-2.5 text-[11px] font-medium disabled:opacity-50"
+                              >
+                                   {leaving ? "Leaving..." : "Confirm leave"}
+                              </button>
+                         </div>
+                    </div>
+               )}
 
                {error && (
                     <div
@@ -243,10 +284,37 @@ export function WorkspaceMembersPanel() {
                >
                     {loading ? (
                          <div
-                              style={{ color: "var(--text-muted)" }}
-                              className="p-6 text-center text-xs"
+                              aria-label="Loading workspace members"
+                              aria-busy="true"
+                              className="divide-y divide-[var(--border-hairline)]"
                          >
-                              Loading members...
+                              {[0, 1, 2, 3].map((row) => (
+                                   <div
+                                        key={row}
+                                        className="flex items-center justify-between gap-4 px-4 py-3"
+                                   >
+                                        <div className="flex min-w-0 flex-1 items-center gap-3">
+                                             <div
+                                                  style={{ backgroundColor: "var(--bg-subtle)" }}
+                                                  className="h-8 w-8 animate-pulse rounded-full"
+                                             />
+                                             <div className="min-w-0 flex-1 space-y-2">
+                                                  <div
+                                                       style={{ backgroundColor: "var(--bg-subtle)" }}
+                                                       className="h-3 w-36 animate-pulse rounded"
+                                                  />
+                                                  <div
+                                                       style={{ backgroundColor: "var(--bg-subtle)" }}
+                                                       className="h-2.5 w-48 max-w-full animate-pulse rounded"
+                                                  />
+                                             </div>
+                                        </div>
+                                        <div
+                                             style={{ backgroundColor: "var(--bg-subtle)" }}
+                                             className="h-7 w-20 animate-pulse rounded-md"
+                                        />
+                                   </div>
+                              ))}
                          </div>
                     ) : members.length === 0 ? (
                          <div
@@ -266,16 +334,28 @@ export function WorkspaceMembersPanel() {
                                              key={member.id}
                                              className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
                                         >
-                                             <div className="min-w-0">
-                                                  <p className="truncate text-xs font-medium">
-                                                       {member.user.name}
-                                                  </p>
-                                                  <p
-                                                       style={{ color: "var(--text-muted)" }}
-                                                       className="truncate text-xs"
+                                             <div className="flex min-w-0 items-center gap-3">
+                                                  <span
+                                                       aria-hidden="true"
+                                                       style={{
+                                                            backgroundColor: "var(--bg-subtle)",
+                                                            color: "var(--text-secondary)",
+                                                       }}
+                                                       className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
                                                   >
-                                                       {member.user.email}
-                                                  </p>
+                                                       {member.user.name.trim().charAt(0).toUpperCase() || "?"}
+                                                  </span>
+                                                  <div className="min-w-0">
+                                                       <p className="truncate text-xs font-medium">
+                                                            {member.user.name}
+                                                       </p>
+                                                       <p
+                                                            style={{ color: "var(--text-muted)" }}
+                                                            className="truncate text-xs"
+                                                       >
+                                                            {member.user.email}
+                                                       </p>
+                                                  </div>
                                              </div>
 
                                              <div className="flex flex-wrap items-center justify-end gap-2">
@@ -320,9 +400,10 @@ export function WorkspaceMembersPanel() {
                                                             <button
                                                                  type="button"
                                                                  onClick={() =>
-                                                                      void handleTransferOwnership(
-                                                                           member,
-                                                                      )
+                                                                      setConfirmingMemberAction({
+                                                                           memberId: member.id,
+                                                                           action: "transfer",
+                                                                      })
                                                                  }
                                                                  disabled={isPending}
                                                                  style={{
@@ -337,7 +418,10 @@ export function WorkspaceMembersPanel() {
                                                             <button
                                                                  type="button"
                                                                  onClick={() =>
-                                                                      void handleRemoveMember(member)
+                                                                      setConfirmingMemberAction({
+                                                                           memberId: member.id,
+                                                                           action: "remove",
+                                                                      })
                                                                  }
                                                                  disabled={isPending}
                                                                  style={{
@@ -352,6 +436,64 @@ export function WorkspaceMembersPanel() {
                                                        </>
                                                   )}
                                              </div>
+                                             {confirmingMemberAction?.memberId === member.id && (
+                                                  <div
+                                                       role="group"
+                                                       aria-label={`Confirm ${confirmingMemberAction.action} for ${member.user.name}`}
+                                                       style={{
+                                                            backgroundColor: "var(--bg-subtle)",
+                                                            borderColor: "var(--border-hairline)",
+                                                       }}
+                                                       className="flex w-full flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2"
+                                                  >
+                                                       <span
+                                                            style={{ color: "var(--text-secondary)" }}
+                                                            className="text-[11px]"
+                                                       >
+                                                            {confirmingMemberAction.action === "transfer"
+                                                                 ? `Transfer ownership to ${member.user.name}? Your role will become EDITOR.`
+                                                                 : `Remove ${member.user.name} from this workspace?`}
+                                                       </span>
+                                                       <div className="flex items-center gap-2">
+                                                            <button
+                                                                 type="button"
+                                                                 onClick={() => setConfirmingMemberAction(null)}
+                                                                 disabled={isPending}
+                                                                 style={{
+                                                                      backgroundColor: "var(--bg-surface)",
+                                                                      borderColor: "var(--border-input)",
+                                                                      color: "var(--text-secondary)",
+                                                                 }}
+                                                                 className="h-7 cursor-pointer rounded-md border px-2.5 text-[11px] font-medium disabled:opacity-50"
+                                                            >
+                                                                 Cancel
+                                                            </button>
+                                                            <button
+                                                                 type="button"
+                                                                 onClick={() =>
+                                                                      confirmingMemberAction.action === "transfer"
+                                                                           ? void handleTransferOwnership(member)
+                                                                           : void handleRemoveMember(member)
+                                                                 }
+                                                                 disabled={isPending}
+                                                                 style={{
+                                                                      backgroundColor:
+                                                                           confirmingMemberAction.action === "remove"
+                                                                                ? "var(--danger-text)"
+                                                                                : "var(--cta-bg)",
+                                                                      color: "var(--cta-fg)",
+                                                                 }}
+                                                                 className="h-7 cursor-pointer rounded-md px-2.5 text-[11px] font-medium disabled:opacity-50"
+                                                            >
+                                                                 {isPending
+                                                                      ? "Saving..."
+                                                                      : confirmingMemberAction.action === "transfer"
+                                                                           ? "Confirm transfer"
+                                                                           : "Confirm removal"}
+                                                            </button>
+                                                       </div>
+                                                  </div>
+                                             )}
                                         </div>
                                    );
                               })}
@@ -364,6 +506,7 @@ export function WorkspaceMembersPanel() {
                               workspaceId={currentWorkspace.id}
                               invitations={invitations}
                               canManage={canManageMembers}
+                              loading={loading}
                               onChanged={() => void loadMembers()}
                          />
                          <InviteLinkCard

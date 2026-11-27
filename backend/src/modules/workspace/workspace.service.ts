@@ -1,6 +1,7 @@
 import { prisma } from "../../config/prisma.js";
 import type { WorkspaceRole } from "../../generated/prisma/client.js";
 import { AppError } from "../../shared/errors/index.js";
+import { withTransientDbRetry } from "../../shared/db-retry.js";
 import type {
      CreateWorkspaceInput,
      UpdateWorkspaceInput,
@@ -89,15 +90,29 @@ export const workspaceService = {
      },
 
      async listWorkspacesForUser(userId: string): Promise<WorkspaceSummary[]> {
-          const memberships = await prisma.workspaceMember.findMany({
+          const memberships = await withTransientDbRetry(() =>
+               prisma.workspaceMember.findMany({
                where: { userId },
-               include: {
-                    workspace: true,
+               select: {
+                    role: true,
+                    workspace: {
+                         select: {
+                              id: true,
+                              name: true,
+                              slug: true,
+                              ownerId: true,
+                              inviteLinkEnabled: true,
+                              defaultJoinRole: true,
+                              createdAt: true,
+                              updatedAt: true,
+                         },
+                    },
                },
                orderBy: {
                     joinedAt: "asc",
                },
-          });
+               }),
+          );
 
           return memberships.map((m) => ({
                id: m.workspace.id,
@@ -116,9 +131,23 @@ export const workspaceService = {
           workspaceId: string,
           role: WorkspaceRole,
      ): Promise<WorkspaceDetail> {
-          const workspace = await prisma.workspace.findUnique({
-               where: { id: workspaceId },
-          });
+          const workspace = await withTransientDbRetry(() =>
+               prisma.workspace.findUnique({
+                    where: { id: workspaceId },
+                    select: {
+                         id: true,
+                         name: true,
+                         slug: true,
+                         ownerId: true,
+                         inviteCode: true,
+                         inviteCodeExpiresAt: true,
+                         inviteLinkEnabled: true,
+                         defaultJoinRole: true,
+                         createdAt: true,
+                         updatedAt: true,
+                    },
+               }),
+          );
 
           if (!workspace) {
                throw new AppError("Workspace not found.", 404, "WORKSPACE_NOT_FOUND");

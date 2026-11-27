@@ -1,5 +1,6 @@
 import { prisma } from "../../config/prisma.js";
 import { AppError } from "../../shared/errors/index.js";
+import { withTransientDbRetry } from "../../shared/db-retry.js";
 import type {
      TransferOwnershipInput,
      TransferOwnershipResult,
@@ -9,9 +10,15 @@ import type {
 
 export const memberService = {
      async listMembers(workspaceId: string): Promise<WorkspaceMemberItem[]> {
-          const members = await prisma.workspaceMember.findMany({
+          const members = await withTransientDbRetry(() =>
+               prisma.workspaceMember.findMany({
                where: { workspaceId },
-               include: {
+               select: {
+                    id: true,
+                    workspaceId: true,
+                    userId: true,
+                    role: true,
+                    joinedAt: true,
                     user: {
                          select: {
                               id: true,
@@ -22,7 +29,8 @@ export const memberService = {
                     },
                },
                orderBy: [{ role: "asc" }, { joinedAt: "asc" }],
-          });
+               }),
+          );
 
           return members.map((m) => ({
                id: m.id,
@@ -44,7 +52,9 @@ export const memberService = {
                     id: memberId,
                     workspaceId,
                },
-               include: {
+               select: {
+                    id: true,
+                    role: true,
                     user: {
                          select: {
                               id: true,
@@ -104,6 +114,10 @@ export const memberService = {
                     id: memberId,
                     workspaceId,
                },
+               select: {
+                    id: true,
+                    role: true,
+               },
           });
 
           if (!targetMember) {
@@ -134,6 +148,10 @@ export const memberService = {
                          workspaceId,
                          userId,
                     },
+               },
+               select: {
+                    id: true,
+                    role: true,
                },
           });
 
@@ -179,6 +197,7 @@ export const memberService = {
                               userId: currentOwnerId,
                          },
                     },
+                    select: { id: true, role: true },
                });
 
                if (!currentOwnerMember || currentOwnerMember.role !== "OWNER") {
@@ -196,6 +215,7 @@ export const memberService = {
                               userId: input.newOwnerId,
                          },
                     },
+                    select: { id: true },
                });
 
                if (!newOwnerMember) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { Check, Copy } from "lucide-react";
 import { ApiClientError } from "@/lib/api-client";
 import { useWorkspace } from "../hooks/use-workspace";
 
@@ -26,6 +27,7 @@ export function WorkspaceSettingsPanel() {
      const [confirmDelete, setConfirmDelete] = useState(false);
      const [statusMsg, setStatusMsg] = useState<string | null>(null);
      const [errorMsg, setErrorMsg] = useState<string | null>(null);
+     const [copiedUrl, setCopiedUrl] = useState(false);
 
      if (!currentWorkspace) return null;
 
@@ -38,6 +40,20 @@ export function WorkspaceSettingsPanel() {
                formDraft.workspaceId === currentWorkspace.id && formDraft.slug !== null
                     ? formDraft.slug
                     : currentWorkspace.slug,
+     };
+     const workspaceUrl =
+          typeof window === "undefined"
+               ? `/w/${formValues.slug}`
+               : `${window.location.origin}/w/${formValues.slug}`;
+
+     const handleCopyUrl = async () => {
+          try {
+               await navigator.clipboard.writeText(workspaceUrl);
+               setCopiedUrl(true);
+               window.setTimeout(() => setCopiedUrl(false), 1800);
+          } catch {
+               setErrorMsg("Could not copy the workspace URL. Please copy it manually.");
+          }
      };
 
      const handleSave = async (e: FormEvent) => {
@@ -226,6 +242,43 @@ export function WorkspaceSettingsPanel() {
                          >
                               Use lowercase letters, numbers, and hyphens.
                          </p>
+                         <div
+                              style={{
+                                   backgroundColor: "var(--bg-subtle)",
+                                   borderColor: "var(--border-hairline)",
+                              }}
+                              className="mt-3 flex min-w-0 items-center justify-between gap-3 rounded-md border px-3 py-2"
+                         >
+                              <div className="min-w-0">
+                                   <span
+                                        style={{ color: "var(--text-muted)" }}
+                                        className="block text-[10px] font-medium uppercase tracking-wide"
+                                   >
+                                        Workspace URL preview
+                                   </span>
+                                   <code className="mt-0.5 block truncate text-xs">
+                                        {workspaceUrl}
+                                   </code>
+                              </div>
+                              <button
+                                   type="button"
+                                   onClick={() => void handleCopyUrl()}
+                                   style={{ color: "var(--text-secondary)" }}
+                                   className="inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded px-2 text-[11px] font-medium hover:opacity-80"
+                              >
+                                   {copiedUrl ? (
+                                        <>
+                                             <Check className="h-3 w-3" />
+                                             Copied
+                                        </>
+                                   ) : (
+                                        <>
+                                             <Copy className="h-3 w-3" />
+                                             Copy URL
+                                        </>
+                                   )}
+                              </button>
+                         </div>
                     </div>
 
                     {canManageWorkspace && (

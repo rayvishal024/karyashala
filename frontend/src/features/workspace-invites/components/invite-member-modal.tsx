@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Mail, X, Check } from "lucide-react";
 import { ApiClientError } from "@/lib/api-client";
 import { inviteApi } from "../api/invite.api";
@@ -26,6 +26,15 @@ export function InviteMemberModal({
      const [error, setError] = useState<string | null>(null);
      const [successMsg, setSuccessMsg] = useState<string | null>(null);
      const [submitting, setSubmitting] = useState(false);
+
+     useEffect(() => {
+          if (!open) return;
+          const handleKeyDown = (event: KeyboardEvent) => {
+               if (event.key === "Escape" && !submitting) onClose();
+          };
+          window.addEventListener("keydown", handleKeyDown);
+          return () => window.removeEventListener("keydown", handleKeyDown);
+     }, [onClose, open, submitting]);
 
      if (!open) return null;
 
@@ -60,7 +69,7 @@ export function InviteMemberModal({
 
      return (
           <div
-               className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4"
+               className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4"
                onMouseDown={(e) => {
                     if (e.target === e.currentTarget && !submitting) onClose();
                }}
@@ -68,6 +77,7 @@ export function InviteMemberModal({
                <div
                     role="dialog"
                     aria-modal="true"
+                    aria-labelledby="invite-member-modal-title"
                     style={{
                          backgroundColor: "var(--bg-surface)",
                          borderColor: "var(--border-hairline)",
@@ -77,7 +87,7 @@ export function InviteMemberModal({
                >
                     <div className="flex items-start justify-between">
                          <div>
-                              <h2 className="text-base font-semibold tracking-tight">
+                              <h2 id="invite-member-modal-title" className="text-base font-semibold tracking-tight">
                                    Invite to {workspaceName}
                               </h2>
                               <p
