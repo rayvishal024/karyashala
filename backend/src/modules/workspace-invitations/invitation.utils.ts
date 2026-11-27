@@ -6,7 +6,7 @@ import type { SendWorkspaceInviteEmailParams } from "./invitation.types.js";
 
 export const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-const FROM_EMAIL = "Karyashala <noreply@contact.karyashala.tech>";
+const FROM_EMAIL = env.RESEND_FROM_EMAIL || "Karyashala <noreply@contact.karyashala.tech>";
 const DEFAULT_APP_URL = "http://localhost:3000";
 
 export function generateRawInviteToken(): string {

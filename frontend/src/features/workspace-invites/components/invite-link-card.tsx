@@ -62,12 +62,13 @@ export function InviteLinkCard({
      };
 
      const handleToggleEnabled = async (enabled: boolean) => {
-          if (!canManage || updating) return;
+          if (!canManage || updating || !settings) return;
           setError(null);
           setUpdating(true);
           try {
                const res = await inviteApi.updateInviteLinkSettings(workspaceId, {
                     enabled,
+                    defaultJoinRole: settings.defaultJoinRole === "VIEWER" ? "VIEWER" : "EDITOR",
                });
                setSettings(res.inviteLink);
                await syncWorkspace();
@@ -83,11 +84,12 @@ export function InviteLinkCard({
      };
 
      const handleRoleChange = async (defaultJoinRole: InviteRoleOption) => {
-          if (!canManage || updating) return;
+          if (!canManage || updating || !settings) return;
           setError(null);
           setUpdating(true);
           try {
                const res = await inviteApi.updateInviteLinkSettings(workspaceId, {
+                    enabled: settings.inviteLinkEnabled,
                     defaultJoinRole,
                });
                setSettings(res.inviteLink);
@@ -104,13 +106,12 @@ export function InviteLinkCard({
      };
 
      const handleRegenerate = async () => {
-          if (!canManage || updating) return;
+          if (!canManage || updating || !settings) return;
           setError(null);
           setUpdating(true);
           try {
                const res = await inviteApi.updateInviteLinkSettings(workspaceId, {
                     regenerateCode: true,
-                    enabled: true,
                });
                setSettings(res.inviteLink);
                await syncWorkspace();

@@ -12,7 +12,15 @@ function LoginContent() {
      const { login } = useAuth();
      const searchParams = useSearchParams();
      const oauthError = searchParams.get("error");
-     const redirectTo = searchParams.get("redirect");
+     const requestedRedirect = searchParams.get("redirect");
+     const redirectTo =
+          requestedRedirect?.startsWith("/") &&
+          !requestedRedirect.startsWith("//") &&
+          !requestedRedirect.includes("\\") &&
+          !/[\u0000-\u001f\u007f]/.test(requestedRedirect)
+               ? requestedRedirect
+               : null;
+     const safeRedirect = redirectTo ?? "/dashboard";
 
      const [email, setEmail] = useState("");
      const [password, setPassword] = useState("");
@@ -196,7 +204,19 @@ function LoginContent() {
                               </div>
 
                               <a
-                                   href={authApi.getGoogleAuthUrl()}
+                                   href={authApi.getGoogleAuthUrl(safeRedirect)}
+                                   onClick={() => {
+                                        try {
+                                             window.sessionStorage.setItem(
+                                                  "post_auth_redirect",
+                                                  safeRedirect,
+                                             );
+                                        } catch {
+                                             setError(
+                                                  "Unable to save your redirect preference.",
+                                             );
+                                        }
+                                   }}
                                    style={{
                                         backgroundColor: "var(--bg-subtle)",
                                         borderColor: "var(--border-input)",

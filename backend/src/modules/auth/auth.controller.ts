@@ -11,9 +11,11 @@ import {
      setAuthCookies,
      clearAuthCookies,
      generateOAuthState,
+     getOAuthStateRedirect,
      generateGoogleAuthUrl,
      setOAuthStateCookies,
      clearOAuthStateCookies,
+     isSafeInternalRedirect,
 } from "./auth.utils.js";
 
 function extractSessionMeta(req: Request) {
@@ -91,8 +93,11 @@ export const authController = {
           return sendSuccess(res, { user }, "User profile fetched");
      },
 
-     async googleRedirect(_req: Request, res: Response) {
-          const state = generateOAuthState();
+     async googleRedirect(req: Request, res: Response) {
+          const redirect = isSafeInternalRedirect(req.query.redirect)
+               ? req.query.redirect
+               : undefined;
+          const state = generateOAuthState(redirect);
           const { url, codeVerifier } = await generateGoogleAuthUrl(state);
 
           setOAuthStateCookies(res, state, codeVerifier);
@@ -126,7 +131,10 @@ export const authController = {
                );
 
                setAuthCookies(res, tokens);
-               return res.redirect(`${env.FRONTEND_URL}/dashboard`);
+               const redirect = getOAuthStateRedirect(state) ?? "/dashboard";
+               return res.redirect(
+                    `${env.APP_URL.replace(/\/+$/, "")}${redirect}`,
+               );
           } catch {
                return res.redirect(
                     `${env.FRONTEND_URL}/login?error=google_auth_failed`,

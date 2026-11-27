@@ -27,8 +27,41 @@ export const OAUTH_STATE_COOKIE = "google_oauth_state";
 export const OAUTH_VERIFIER_COOKIE = "google_oauth_verifier";
 
 
-export function generateOAuthState(): string {
-     return crypto.randomBytes(32).toString("base64url");
+export function isSafeInternalRedirect(value: unknown): value is string {
+     return (
+          typeof value === "string" &&
+          value.startsWith("/") &&
+          !value.startsWith("//") &&
+          !value.includes("\\") &&
+          !/[\u0000-\u001f\u007f]/.test(value)
+     );
+}
+
+export function generateOAuthState(redirect?: unknown): string {
+     const payload = {
+          nonce: crypto.randomBytes(32).toString("base64url"),
+          ...(isSafeInternalRedirect(redirect) ? { redirect } : {}),
+     };
+     return Buffer.from(JSON.stringify(payload)).toString("base64url");
+}
+
+export function getOAuthStateRedirect(state: string): string | undefined {
+     try {
+          const payload: unknown = JSON.parse(
+               Buffer.from(state, "base64url").toString("utf8"),
+          );
+          if (
+               typeof payload === "object" &&
+               payload !== null &&
+               "redirect" in payload &&
+               isSafeInternalRedirect(payload.redirect)
+          ) {
+               return payload.redirect;
+          }
+     } catch {
+          return undefined;
+     }
+     return undefined;
 }
 
 export async function generateGoogleAuthUrl(state: string): Promise<{

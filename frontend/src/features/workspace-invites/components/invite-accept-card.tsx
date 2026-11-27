@@ -20,6 +20,20 @@ export function InviteAcceptCard({ token }: { token: string }) {
      const [error, setError] = useState<string | null>(null);
 
      useEffect(() => {
+          try {
+               const pendingRedirect = window.sessionStorage.getItem(
+                    "post_auth_redirect",
+               );
+               const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+               if (pendingRedirect === currentPath) {
+                    window.sessionStorage.removeItem("post_auth_redirect");
+               }
+          } catch {
+               return;
+          }
+     }, [token]);
+
+     useEffect(() => {
           let active = true;
           setLoading(true);
           setError(null);

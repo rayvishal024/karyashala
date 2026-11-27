@@ -6,12 +6,14 @@ export type InvitationStatus = "PENDING" | "ACCEPTED" | "EXPIRED" | "REVOKED";
 
 export interface WorkspaceInvitationItem {
      id: string;
-     workspaceId: string;
+     workspaceId?: string;
      email: string;
      role: WorkspaceRole;
      status: InvitationStatus;
      expiresAt: string;
-     createdAt: string;
+     acceptedAt?: string | null;
+     createdAt?: string;
+     updatedAt?: string;
      invitedBy?: {
           id: string;
           name: string;
@@ -54,9 +56,13 @@ export interface InviteLinkSettings {
      defaultJoinRole: WorkspaceRole;
 }
 
-export interface UpdateInviteLinkPayload {
-     enabled?: boolean;
-     defaultJoinRole?: InviteRoleOption;
-     regenerateCode?: boolean;
-     expiresInDays?: number | null;
-}
+export type UpdateInviteLinkPayload =
+     | {
+            enabled: boolean;
+            defaultJoinRole: InviteRoleOption;
+            regenerateCode?: false;
+       }
+     | {
+            regenerateCode: true;
+            defaultJoinRole?: InviteRoleOption;
+       };

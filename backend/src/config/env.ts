@@ -54,6 +54,8 @@ const envSchema = z.object({
 
      RESEND_API_KEY: z.string().min(1, "RESEND_API_KEY is required"),
 
+     RESEND_FROM_EMAIL: z.string().min(1, "RESEND_FROM_EMAIL is required"),
+
      APP_URL: z.string().min(1, "APP_URL is required"),
 });
 

@@ -32,7 +32,18 @@ export const authApi = {
           });
      },
 
-     getGoogleAuthUrl(): string {
-          return `${API_BASE_URL}/auth/google`;
+     getGoogleAuthUrl(redirect?: string | null): string {
+          const safeRedirect =
+               redirect &&
+               redirect.startsWith("/") &&
+               !redirect.startsWith("//") &&
+               !redirect.includes("\\") &&
+               !/[\u0000-\u001f\u007f]/.test(redirect)
+                    ? redirect
+                    : null;
+          const query = safeRedirect
+               ? `?redirect=${encodeURIComponent(safeRedirect)}`
+               : "";
+          return `${API_BASE_URL}/auth/google${query}`;
      },
 };

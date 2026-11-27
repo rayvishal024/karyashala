@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, KeyRound } from "lucide-react";
 import { AuthGuard, useAuth } from "@/features/auth";
@@ -17,12 +17,40 @@ function DashboardResolver() {
      const router = useRouter();
      const { logout } = useAuth();
      const { workspaces, isLoadingList, getLastVisitedSlug } = useWorkspace();
+     const hasPostAuthRedirect = useRef(false);
 
      const [createOpen, setCreateOpen] = useState(false);
      const [joinOpen, setJoinOpen] = useState(false);
 
      useEffect(() => {
-          if (isLoadingList || workspaces.length === 0) return;
+          let redirect: string | null;
+          try {
+               redirect = window.sessionStorage.getItem("post_auth_redirect");
+               window.sessionStorage.removeItem("post_auth_redirect");
+          } catch {
+               return;
+          }
+
+          if (
+               redirect &&
+               redirect.startsWith("/") &&
+               !redirect.startsWith("//") &&
+               !redirect.includes("\\") &&
+               !/[\u0000-\u001f\u007f]/.test(redirect)
+          ) {
+               hasPostAuthRedirect.current = true;
+               router.replace(redirect);
+          }
+     }, [router]);
+
+     useEffect(() => {
+          if (
+               hasPostAuthRedirect.current ||
+               isLoadingList ||
+               workspaces.length === 0
+          ) {
+               return;
+          }
 
           const lastSlug = getLastVisitedSlug();
           const target =
