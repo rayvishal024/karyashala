@@ -1,10 +1,37 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Plus, KeyRound } from "lucide-react";
 import { AuthGuard, useAuth } from "@/features/auth";
+import {
+     CreateWorkspaceModal,
+     JoinByCodeModal,
+     WorkspaceEmptyState,
+     WorkspaceProvider,
+     useWorkspace,
+} from "@/features/workspace";
 import { ThemeToggle } from "@/shared/theme/theme-toggle";
 
-function DashboardContent() {
-     const { user, logout } = useAuth();
+function DashboardResolver() {
+     const router = useRouter();
+     const { logout } = useAuth();
+     const { workspaces, isLoadingList, getLastVisitedSlug } = useWorkspace();
+
+     const [createOpen, setCreateOpen] = useState(false);
+     const [joinOpen, setJoinOpen] = useState(false);
+
+     useEffect(() => {
+          if (isLoadingList || workspaces.length === 0) return;
+
+          const lastSlug = getLastVisitedSlug();
+          const target =
+               workspaces.find((w) => w.slug === lastSlug) || workspaces[0];
+
+          if (target) {
+               router.replace(`/w/${target.slug}`);
+          }
+     }, [isLoadingList, workspaces, getLastVisitedSlug, router]);
 
      return (
           <div
@@ -22,7 +49,7 @@ function DashboardContent() {
                     className="border-b px-6 py-3.5"
                >
                     <div className="mx-auto flex max-w-5xl items-center justify-between">
-                         <div className="flex items-center gap-2">
+                         <div className="flex items-center gap-2.5">
                               <span
                                    style={{
                                         backgroundColor: "var(--cta-bg)",
@@ -37,17 +64,45 @@ function DashboardContent() {
                               </span>
                          </div>
 
-                         <div className="flex items-center gap-2.5">
+                         <div className="flex items-center gap-2">
+                              <button
+                                   type="button"
+                                   onClick={() => setJoinOpen(true)}
+                                   style={{
+                                        backgroundColor: "var(--bg-subtle)",
+                                        borderColor: "var(--border-input)",
+                                        color: "var(--text-primary)",
+                                   }}
+                                   className="hidden h-8 cursor-pointer items-center gap-1.5 rounded-md border px-3 text-xs font-medium sm:inline-flex"
+                              >
+                                   <KeyRound className="h-3.5 w-3.5" />
+                                   <span>Join code</span>
+                              </button>
+
+                              <button
+                                   type="button"
+                                   onClick={() => setCreateOpen(true)}
+                                   style={{
+                                        backgroundColor: "var(--cta-bg)",
+                                        color: "var(--cta-fg)",
+                                   }}
+                                   className="hidden h-8 cursor-pointer items-center gap-1.5 rounded-md px-3 text-xs font-medium sm:inline-flex"
+                              >
+                                   <Plus className="h-3.5 w-3.5" />
+                                   <span>New workspace</span>
+                              </button>
+
                               <ThemeToggle />
+
                               <button
                                    type="button"
                                    onClick={logout}
                                    style={{
                                         backgroundColor: "var(--bg-subtle)",
                                         borderColor: "var(--border-input)",
-                                        color: "var(--text-primary)",
+                                        color: "var(--text-secondary)",
                                    }}
-                                   className="h-8 cursor-pointer rounded-md border px-3 text-xs font-medium transition-opacity hover:opacity-90"
+                                   className="h-8 cursor-pointer rounded-md border px-3 text-xs font-medium"
                               >
                                    Sign out
                               </button>
@@ -55,25 +110,34 @@ function DashboardContent() {
                     </div>
                </header>
 
-               <main className="mx-auto max-w-3xl px-4 py-12">
-                    <div
-                         style={{
-                              backgroundColor: "var(--bg-surface)",
-                              borderColor: "var(--border-hairline)",
-                         }}
-                         className="rounded-xl border p-6"
-                    >
-                         <h1 className="text-lg font-semibold tracking-tight">
-                              Welcome, {user?.name}
-                         </h1>
-                         <p
-                              style={{ color: "var(--text-secondary)" }}
-                              className="mt-1 text-xs"
+               <main className="mx-auto max-w-5xl px-4 py-10">
+                    {isLoadingList ? (
+                         <div
+                              style={{ color: "var(--text-muted)" }}
+                              className="flex items-center justify-center py-20 text-xs"
                          >
-                              {user?.email} · {user?.provider} · {user?.role}
-                         </p>
-                    </div>
+                              Loading workspaces...
+                         </div>
+                    ) : workspaces.length === 0 ? (
+                         <WorkspaceEmptyState
+                              onCreateClick={() => setCreateOpen(true)}
+                              onJoinClick={() => setJoinOpen(true)}
+                         />
+                    ) : (
+                         <div
+                              style={{ color: "var(--text-muted)" }}
+                              className="flex items-center justify-center py-20 text-xs"
+                         >
+                              Opening workspace...
+                         </div>
+                    )}
                </main>
+
+               <CreateWorkspaceModal
+                    open={createOpen}
+                    onClose={() => setCreateOpen(false)}
+               />
+               <JoinByCodeModal open={joinOpen} onClose={() => setJoinOpen(false)} />
           </div>
      );
 }
@@ -81,7 +145,9 @@ function DashboardContent() {
 export default function DashboardPage() {
      return (
           <AuthGuard>
-               <DashboardContent />
+               <WorkspaceProvider>
+                    <DashboardResolver />
+               </WorkspaceProvider>
           </AuthGuard>
      );
 }

@@ -1,20 +1,21 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../hooks/use-auth";
 
 export function AuthGuard({ children }: { children: ReactNode }) {
      const { user, isLoading } = useAuth();
      const router = useRouter();
-     const pathname = usePathname();
 
      useEffect(() => {
           if (!isLoading && !user) {
-               const loginUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
+               const currentPath =
+                    typeof window !== "undefined" ? window.location.pathname : "/dashboard";
+               const loginUrl = `/login?redirect=${encodeURIComponent(currentPath)}`;
                router.replace(loginUrl);
           }
-     }, [isLoading, user, pathname, router]);
+     }, [isLoading, user, router]);
 
      if (isLoading) {
           return (
