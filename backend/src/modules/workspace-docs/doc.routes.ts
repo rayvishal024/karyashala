@@ -2,6 +2,7 @@ import { Router, type RequestHandler, type Router as ExpressRouter } from "expre
 import { authenticate } from "../auth/auth.middleware.js";
 import { AppError } from "../../shared/errors/index.js";
 import { requireWorkspaceMember } from "../workspace/workspace.middleware.js";
+import { documentCommentController } from "./comment.controller.js";
 import { docController } from "./doc.controller.js";
 
 const requireDocEditor: RequestHandler = (req, _res, next) => {
@@ -52,6 +53,24 @@ workspaceDocsRouter.delete(
      requireWorkspaceMember,
      requireDocEditor,
      docController.remove,
+);
+workspaceDocsRouter.get(
+     "/:workspaceId/docs/:docId/comments",
+     authenticate,
+     requireWorkspaceMember,
+     documentCommentController.list,
+);
+workspaceDocsRouter.post(
+     "/:workspaceId/docs/:docId/comments",
+     authenticate,
+     requireWorkspaceMember,
+     documentCommentController.create,
+);
+workspaceDocsRouter.delete(
+     "/:workspaceId/docs/:docId/comments/:commentId",
+     authenticate,
+     requireWorkspaceMember,
+     documentCommentController.remove,
 );
 
 export { workspaceDocsRouter };

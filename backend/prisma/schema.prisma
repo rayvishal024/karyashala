@@ -48,6 +48,7 @@ model User {
   sentInvitations     WorkspaceInvitation[] @relation("InvitedByUser")
   documentsCreated    Document[]            @relation("DocumentCreatedBy")
   documentsUpdated    Document[]            @relation("DocumentUpdatedBy")
+  commentsAuthored    DocumentComment[]
 
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -87,6 +88,7 @@ model Workspace {
   members             WorkspaceMember[]
   invitations         WorkspaceInvitation[]
   documents           Document[]
+  documentComments    DocumentComment[]
 
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
@@ -145,8 +147,30 @@ model Document {
   updatedBy   User      @relation("DocumentUpdatedBy", fields: [updatedById], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  comments    DocumentComment[]
 
   @@index([workspaceId])
   @@index([workspaceId, updatedAt])
   @@map("workspace_documents")
+}
+
+model DocumentComment {
+  id          String           @id @default(cuid())
+  documentId  String
+  document    Document         @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  workspaceId String
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      DocumentComment? @relation("DocumentCommentThread", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     DocumentComment[] @relation("DocumentCommentThread")
+  body        String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([documentId])
+  @@index([workspaceId])
+  @@index([parentId])
+  @@map("document_comments")
 }

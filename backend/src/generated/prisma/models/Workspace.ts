@@ -226,6 +226,7 @@ export type WorkspaceWhereInput = {
   members?: Prisma.WorkspaceMemberListRelationFilter
   invitations?: Prisma.WorkspaceInvitationListRelationFilter
   documents?: Prisma.DocumentListRelationFilter
+  documentComments?: Prisma.DocumentCommentListRelationFilter
 }
 
 export type WorkspaceOrderByWithRelationInput = {
@@ -243,6 +244,7 @@ export type WorkspaceOrderByWithRelationInput = {
   members?: Prisma.WorkspaceMemberOrderByRelationAggregateInput
   invitations?: Prisma.WorkspaceInvitationOrderByRelationAggregateInput
   documents?: Prisma.DocumentOrderByRelationAggregateInput
+  documentComments?: Prisma.DocumentCommentOrderByRelationAggregateInput
 }
 
 export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
@@ -263,6 +265,7 @@ export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
   members?: Prisma.WorkspaceMemberListRelationFilter
   invitations?: Prisma.WorkspaceInvitationListRelationFilter
   documents?: Prisma.DocumentListRelationFilter
+  documentComments?: Prisma.DocumentCommentListRelationFilter
 }, "id" | "slug" | "inviteCode">
 
 export type WorkspaceOrderByWithAggregationInput = {
@@ -311,6 +314,7 @@ export type WorkspaceCreateInput = {
   members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.WorkspaceInvitationCreateNestedManyWithoutWorkspaceInput
   documents?: Prisma.DocumentCreateNestedManyWithoutWorkspaceInput
+  documentComments?: Prisma.DocumentCommentCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateInput = {
@@ -327,6 +331,7 @@ export type WorkspaceUncheckedCreateInput = {
   members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.WorkspaceInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutWorkspaceInput
+  documentComments?: Prisma.DocumentCommentUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUpdateInput = {
@@ -343,6 +348,7 @@ export type WorkspaceUpdateInput = {
   members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.WorkspaceInvitationUpdateManyWithoutWorkspaceNestedInput
   documents?: Prisma.DocumentUpdateManyWithoutWorkspaceNestedInput
+  documentComments?: Prisma.DocumentCommentUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateInput = {
@@ -359,6 +365,7 @@ export type WorkspaceUncheckedUpdateInput = {
   members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.WorkspaceInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   documents?: Prisma.DocumentUncheckedUpdateManyWithoutWorkspaceNestedInput
+  documentComments?: Prisma.DocumentCommentUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateManyInput = {
@@ -545,6 +552,20 @@ export type WorkspaceUpdateOneRequiredWithoutDocumentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutDocumentsInput, Prisma.WorkspaceUpdateWithoutDocumentsInput>, Prisma.WorkspaceUncheckedUpdateWithoutDocumentsInput>
 }
 
+export type WorkspaceCreateNestedOneWithoutDocumentCommentsInput = {
+  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutDocumentCommentsInput, Prisma.WorkspaceUncheckedCreateWithoutDocumentCommentsInput>
+  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutDocumentCommentsInput
+  connect?: Prisma.WorkspaceWhereUniqueInput
+}
+
+export type WorkspaceUpdateOneRequiredWithoutDocumentCommentsNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutDocumentCommentsInput, Prisma.WorkspaceUncheckedCreateWithoutDocumentCommentsInput>
+  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutDocumentCommentsInput
+  upsert?: Prisma.WorkspaceUpsertWithoutDocumentCommentsInput
+  connect?: Prisma.WorkspaceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutDocumentCommentsInput, Prisma.WorkspaceUpdateWithoutDocumentCommentsInput>, Prisma.WorkspaceUncheckedUpdateWithoutDocumentCommentsInput>
+}
+
 export type WorkspaceCreateWithoutOwnerInput = {
   id?: string
   name: string
@@ -558,6 +579,7 @@ export type WorkspaceCreateWithoutOwnerInput = {
   members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.WorkspaceInvitationCreateNestedManyWithoutWorkspaceInput
   documents?: Prisma.DocumentCreateNestedManyWithoutWorkspaceInput
+  documentComments?: Prisma.DocumentCommentCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutOwnerInput = {
@@ -573,6 +595,7 @@ export type WorkspaceUncheckedCreateWithoutOwnerInput = {
   members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.WorkspaceInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutWorkspaceInput
+  documentComments?: Prisma.DocumentCommentUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutOwnerInput = {
@@ -630,6 +653,7 @@ export type WorkspaceCreateWithoutMembersInput = {
   owner: Prisma.UserCreateNestedOneWithoutWorkspacesOwnedInput
   invitations?: Prisma.WorkspaceInvitationCreateNestedManyWithoutWorkspaceInput
   documents?: Prisma.DocumentCreateNestedManyWithoutWorkspaceInput
+  documentComments?: Prisma.DocumentCommentCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutMembersInput = {
@@ -645,6 +669,7 @@ export type WorkspaceUncheckedCreateWithoutMembersInput = {
   updatedAt?: Date | string
   invitations?: Prisma.WorkspaceInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutWorkspaceInput
+  documentComments?: Prisma.DocumentCommentUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutMembersInput = {
@@ -676,6 +701,7 @@ export type WorkspaceUpdateWithoutMembersInput = {
   owner?: Prisma.UserUpdateOneRequiredWithoutWorkspacesOwnedNestedInput
   invitations?: Prisma.WorkspaceInvitationUpdateManyWithoutWorkspaceNestedInput
   documents?: Prisma.DocumentUpdateManyWithoutWorkspaceNestedInput
+  documentComments?: Prisma.DocumentCommentUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutMembersInput = {
@@ -691,6 +717,7 @@ export type WorkspaceUncheckedUpdateWithoutMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   invitations?: Prisma.WorkspaceInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   documents?: Prisma.DocumentUncheckedUpdateManyWithoutWorkspaceNestedInput
+  documentComments?: Prisma.DocumentCommentUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutInvitationsInput = {
@@ -706,6 +733,7 @@ export type WorkspaceCreateWithoutInvitationsInput = {
   owner: Prisma.UserCreateNestedOneWithoutWorkspacesOwnedInput
   members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
   documents?: Prisma.DocumentCreateNestedManyWithoutWorkspaceInput
+  documentComments?: Prisma.DocumentCommentCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutInvitationsInput = {
@@ -721,6 +749,7 @@ export type WorkspaceUncheckedCreateWithoutInvitationsInput = {
   updatedAt?: Date | string
   members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
   documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutWorkspaceInput
+  documentComments?: Prisma.DocumentCommentUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutInvitationsInput = {
@@ -752,6 +781,7 @@ export type WorkspaceUpdateWithoutInvitationsInput = {
   owner?: Prisma.UserUpdateOneRequiredWithoutWorkspacesOwnedNestedInput
   members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
   documents?: Prisma.DocumentUpdateManyWithoutWorkspaceNestedInput
+  documentComments?: Prisma.DocumentCommentUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutInvitationsInput = {
@@ -767,6 +797,7 @@ export type WorkspaceUncheckedUpdateWithoutInvitationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
   documents?: Prisma.DocumentUncheckedUpdateManyWithoutWorkspaceNestedInput
+  documentComments?: Prisma.DocumentCommentUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutDocumentsInput = {
@@ -782,6 +813,7 @@ export type WorkspaceCreateWithoutDocumentsInput = {
   owner: Prisma.UserCreateNestedOneWithoutWorkspacesOwnedInput
   members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.WorkspaceInvitationCreateNestedManyWithoutWorkspaceInput
+  documentComments?: Prisma.DocumentCommentCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutDocumentsInput = {
@@ -797,6 +829,7 @@ export type WorkspaceUncheckedCreateWithoutDocumentsInput = {
   updatedAt?: Date | string
   members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.WorkspaceInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
+  documentComments?: Prisma.DocumentCommentUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutDocumentsInput = {
@@ -828,6 +861,7 @@ export type WorkspaceUpdateWithoutDocumentsInput = {
   owner?: Prisma.UserUpdateOneRequiredWithoutWorkspacesOwnedNestedInput
   members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.WorkspaceInvitationUpdateManyWithoutWorkspaceNestedInput
+  documentComments?: Prisma.DocumentCommentUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutDocumentsInput = {
@@ -843,6 +877,87 @@ export type WorkspaceUncheckedUpdateWithoutDocumentsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.WorkspaceInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  documentComments?: Prisma.DocumentCommentUncheckedUpdateManyWithoutWorkspaceNestedInput
+}
+
+export type WorkspaceCreateWithoutDocumentCommentsInput = {
+  id?: string
+  name: string
+  slug: string
+  inviteCode?: string | null
+  inviteCodeExpiresAt?: Date | string | null
+  inviteLinkEnabled?: boolean
+  defaultJoinRole?: $Enums.WorkspaceRole
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutWorkspacesOwnedInput
+  members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
+  invitations?: Prisma.WorkspaceInvitationCreateNestedManyWithoutWorkspaceInput
+  documents?: Prisma.DocumentCreateNestedManyWithoutWorkspaceInput
+}
+
+export type WorkspaceUncheckedCreateWithoutDocumentCommentsInput = {
+  id?: string
+  name: string
+  slug: string
+  ownerId: string
+  inviteCode?: string | null
+  inviteCodeExpiresAt?: Date | string | null
+  inviteLinkEnabled?: boolean
+  defaultJoinRole?: $Enums.WorkspaceRole
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
+  invitations?: Prisma.WorkspaceInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
+  documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutWorkspaceInput
+}
+
+export type WorkspaceCreateOrConnectWithoutDocumentCommentsInput = {
+  where: Prisma.WorkspaceWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutDocumentCommentsInput, Prisma.WorkspaceUncheckedCreateWithoutDocumentCommentsInput>
+}
+
+export type WorkspaceUpsertWithoutDocumentCommentsInput = {
+  update: Prisma.XOR<Prisma.WorkspaceUpdateWithoutDocumentCommentsInput, Prisma.WorkspaceUncheckedUpdateWithoutDocumentCommentsInput>
+  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutDocumentCommentsInput, Prisma.WorkspaceUncheckedCreateWithoutDocumentCommentsInput>
+  where?: Prisma.WorkspaceWhereInput
+}
+
+export type WorkspaceUpdateToOneWithWhereWithoutDocumentCommentsInput = {
+  where?: Prisma.WorkspaceWhereInput
+  data: Prisma.XOR<Prisma.WorkspaceUpdateWithoutDocumentCommentsInput, Prisma.WorkspaceUncheckedUpdateWithoutDocumentCommentsInput>
+}
+
+export type WorkspaceUpdateWithoutDocumentCommentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteCodeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  inviteLinkEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  defaultJoinRole?: Prisma.EnumWorkspaceRoleFieldUpdateOperationsInput | $Enums.WorkspaceRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutWorkspacesOwnedNestedInput
+  members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
+  invitations?: Prisma.WorkspaceInvitationUpdateManyWithoutWorkspaceNestedInput
+  documents?: Prisma.DocumentUpdateManyWithoutWorkspaceNestedInput
+}
+
+export type WorkspaceUncheckedUpdateWithoutDocumentCommentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  inviteCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  inviteCodeExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  inviteLinkEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  defaultJoinRole?: Prisma.EnumWorkspaceRoleFieldUpdateOperationsInput | $Enums.WorkspaceRole
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
+  invitations?: Prisma.WorkspaceInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  documents?: Prisma.DocumentUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateManyOwnerInput = {
@@ -870,6 +985,7 @@ export type WorkspaceUpdateWithoutOwnerInput = {
   members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.WorkspaceInvitationUpdateManyWithoutWorkspaceNestedInput
   documents?: Prisma.DocumentUpdateManyWithoutWorkspaceNestedInput
+  documentComments?: Prisma.DocumentCommentUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutOwnerInput = {
@@ -885,6 +1001,7 @@ export type WorkspaceUncheckedUpdateWithoutOwnerInput = {
   members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.WorkspaceInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   documents?: Prisma.DocumentUncheckedUpdateManyWithoutWorkspaceNestedInput
+  documentComments?: Prisma.DocumentCommentUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateManyWithoutOwnerInput = {
@@ -908,12 +1025,14 @@ export type WorkspaceCountOutputType = {
   members: number
   invitations: number
   documents: number
+  documentComments: number
 }
 
 export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   members?: boolean | WorkspaceCountOutputTypeCountMembersArgs
   invitations?: boolean | WorkspaceCountOutputTypeCountInvitationsArgs
   documents?: boolean | WorkspaceCountOutputTypeCountDocumentsArgs
+  documentComments?: boolean | WorkspaceCountOutputTypeCountDocumentCommentsArgs
 }
 
 /**
@@ -947,6 +1066,13 @@ export type WorkspaceCountOutputTypeCountDocumentsArgs<ExtArgs extends runtime.T
   where?: Prisma.DocumentWhereInput
 }
 
+/**
+ * WorkspaceCountOutputType without action
+ */
+export type WorkspaceCountOutputTypeCountDocumentCommentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DocumentCommentWhereInput
+}
+
 
 export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -963,6 +1089,7 @@ export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   members?: boolean | Prisma.Workspace$membersArgs<ExtArgs>
   invitations?: boolean | Prisma.Workspace$invitationsArgs<ExtArgs>
   documents?: boolean | Prisma.Workspace$documentsArgs<ExtArgs>
+  documentComments?: boolean | Prisma.Workspace$documentCommentsArgs<ExtArgs>
   _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workspace"]>
 
@@ -1013,6 +1140,7 @@ export type WorkspaceInclude<ExtArgs extends runtime.Types.Extensions.InternalAr
   members?: boolean | Prisma.Workspace$membersArgs<ExtArgs>
   invitations?: boolean | Prisma.Workspace$invitationsArgs<ExtArgs>
   documents?: boolean | Prisma.Workspace$documentsArgs<ExtArgs>
+  documentComments?: boolean | Prisma.Workspace$documentCommentsArgs<ExtArgs>
   _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type WorkspaceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1029,6 +1157,7 @@ export type $WorkspacePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     members: Prisma.$WorkspaceMemberPayload<ExtArgs>[]
     invitations: Prisma.$WorkspaceInvitationPayload<ExtArgs>[]
     documents: Prisma.$DocumentPayload<ExtArgs>[]
+    documentComments: Prisma.$DocumentCommentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1439,6 +1568,7 @@ export interface Prisma__WorkspaceClient<T, Null = never, ExtArgs extends runtim
   members<T extends Prisma.Workspace$membersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$membersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkspaceMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invitations<T extends Prisma.Workspace$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkspaceInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   documents<T extends Prisma.Workspace$documentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$documentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  documentComments<T extends Prisma.Workspace$documentCommentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$documentCommentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocumentCommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1948,6 +2078,30 @@ export type Workspace$documentsArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.DocumentScalarFieldEnum | Prisma.DocumentScalarFieldEnum[]
+}
+
+/**
+ * Workspace.documentComments
+ */
+export type Workspace$documentCommentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DocumentComment
+   */
+  select?: Prisma.DocumentCommentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DocumentComment
+   */
+  omit?: Prisma.DocumentCommentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DocumentCommentInclude<ExtArgs> | null
+  where?: Prisma.DocumentCommentWhereInput
+  orderBy?: Prisma.DocumentCommentOrderByWithRelationInput | Prisma.DocumentCommentOrderByWithRelationInput[]
+  cursor?: Prisma.DocumentCommentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DocumentCommentScalarFieldEnum | Prisma.DocumentCommentScalarFieldEnum[]
 }
 
 /**

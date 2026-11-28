@@ -22,7 +22,18 @@ const SNAPSHOT_DEBOUNCE_MS = 1_000;
 const SYNC_MESSAGE = 0;
 const AWARENESS_MESSAGE = 1;
 const PRESENCE_MESSAGE = 2;
+const COMMENTS_MESSAGE = 3;
 const redisOrigin = Symbol("redis");
+const collaboratorColors = [
+     "#b42318",
+     "#175cd3",
+     "#027a48",
+     "#6941c6",
+     "#b54708",
+     "#026aa2",
+     "#c11574",
+     "#7a2e0e",
+] as const;
 
 class UpgradeError extends Error {
      constructor(
@@ -71,7 +82,7 @@ interface Connection {
 }
 
 interface PubSubMessage {
-     type: "update" | "awareness" | "presence";
+     type: "update" | "awareness" | "presence" | "comments";
      origin: string;
      payload?: string;
      userId?: string;
@@ -86,8 +97,11 @@ let redisSubscriber: RedisClientType | undefined;
 let redisReady: Promise<void> | undefined;
 
 function hashColor(userId: string): string {
-     const digest = crypto.createHash("sha256").update(userId).digest();
-     return `hsl(${digest.readUInt16BE(0) % 360} 70% 55%)`;
+     let hash = 2_166_136_261;
+     for (let index = 0; index < userId.length; index += 1) {
+          hash = Math.imul(hash ^ userId.charCodeAt(index), 16_777_619);
+     }
+     return collaboratorColors[(hash >>> 0) % collaboratorColors.length];
 }
 
 function getCookieToken(request: IncomingMessage): string | undefined {
@@ -441,6 +455,10 @@ async function subscribeRoom(room: Room): Promise<void> {
                     broadcast(room, encoding.toUint8Array(encoder));
                } else if (message.type === "presence") {
                     sendPresence(room, await loadPresence(room));
+               } else if (message.type === "comments") {
+                    const encoder = encoding.createEncoder();
+                    encoding.writeVarUint(encoder, COMMENTS_MESSAGE);
+                    broadcast(room, encoding.toUint8Array(encoder));
                }
           })().catch((error: unknown) => {
                logger.error({ err: error, room: room.key }, "Failed to process Redis collaboration message");
@@ -571,6 +589,36 @@ function readAwarenessClientIds(update: Uint8Array): number[] {
           decoding.readVarString(decoder);
      }
      return clientIds;
+}
+
+export async function publishDocumentCommentsChanged(
+     workspaceId: string,
+     docId: string,
+): Promise<void> {
+     const roomKey = `ws:${workspaceId}:doc:${docId}`;
+     const room = rooms.get(roomKey);
+     if (room && !room.closing) {
+          const encoder = encoding.createEncoder();
+          encoding.writeVarUint(encoder, COMMENTS_MESSAGE);
+          broadcast(room, encoding.toUint8Array(encoder));
+     }
+
+     try {
+          await ensureRedis();
+          if (room) {
+               await publish(room, { type: "comments", origin: instanceId });
+          } else if (redisPublisher?.isReady) {
+               await redisPublisher.publish(
+                    roomKey,
+                    JSON.stringify({ type: "comments", origin: instanceId } satisfies PubSubMessage),
+               );
+          }
+     } catch (error) {
+          logger.error(
+               { err: error, workspaceId, docId },
+               "Could not publish document comment change to collaboration peers",
+          );
+     }
 }
 
 function handleMessage(socket: WebSocket, data: Buffer | ArrayBuffer | Buffer[]): void {

@@ -56,7 +56,8 @@ export const ModelName = {
   Workspace: 'Workspace',
   WorkspaceMember: 'WorkspaceMember',
   WorkspaceInvitation: 'WorkspaceInvitation',
-  Document: 'Document'
+  Document: 'Document',
+  DocumentComment: 'DocumentComment'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -163,6 +164,20 @@ export const DocumentScalarFieldEnum = {
 } as const
 
 export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typeof DocumentScalarFieldEnum]
+
+
+export const DocumentCommentScalarFieldEnum = {
+  id: 'id',
+  documentId: 'documentId',
+  workspaceId: 'workspaceId',
+  authorId: 'authorId',
+  parentId: 'parentId',
+  body: 'body',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DocumentCommentScalarFieldEnum = (typeof DocumentCommentScalarFieldEnum)[keyof typeof DocumentCommentScalarFieldEnum]
 
 
 export const SortOrder = {

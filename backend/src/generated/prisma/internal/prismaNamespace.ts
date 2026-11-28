@@ -402,7 +402,8 @@ export const ModelName = {
   Workspace: 'Workspace',
   WorkspaceMember: 'WorkspaceMember',
   WorkspaceInvitation: 'WorkspaceInvitation',
-  Document: 'Document'
+  Document: 'Document',
+  DocumentComment: 'DocumentComment'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -418,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "workspace" | "workspaceMember" | "workspaceInvitation" | "document"
+    modelProps: "user" | "session" | "workspace" | "workspaceMember" | "workspaceInvitation" | "document" | "documentComment"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -866,6 +867,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DocumentComment: {
+      payload: Prisma.$DocumentCommentPayload<ExtArgs>
+      fields: Prisma.DocumentCommentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DocumentCommentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentCommentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DocumentCommentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentCommentPayload>
+        }
+        findFirst: {
+          args: Prisma.DocumentCommentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentCommentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DocumentCommentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentCommentPayload>
+        }
+        findMany: {
+          args: Prisma.DocumentCommentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentCommentPayload>[]
+        }
+        create: {
+          args: Prisma.DocumentCommentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentCommentPayload>
+        }
+        createMany: {
+          args: Prisma.DocumentCommentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DocumentCommentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentCommentPayload>[]
+        }
+        delete: {
+          args: Prisma.DocumentCommentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentCommentPayload>
+        }
+        update: {
+          args: Prisma.DocumentCommentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentCommentPayload>
+        }
+        deleteMany: {
+          args: Prisma.DocumentCommentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DocumentCommentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DocumentCommentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentCommentPayload>[]
+        }
+        upsert: {
+          args: Prisma.DocumentCommentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentCommentPayload>
+        }
+        aggregate: {
+          args: Prisma.DocumentCommentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDocumentComment>
+        }
+        groupBy: {
+          args: Prisma.DocumentCommentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DocumentCommentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DocumentCommentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DocumentCommentCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -993,6 +1068,20 @@ export const DocumentScalarFieldEnum = {
 } as const
 
 export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typeof DocumentScalarFieldEnum]
+
+
+export const DocumentCommentScalarFieldEnum = {
+  id: 'id',
+  documentId: 'documentId',
+  workspaceId: 'workspaceId',
+  authorId: 'authorId',
+  parentId: 'parentId',
+  body: 'body',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DocumentCommentScalarFieldEnum = (typeof DocumentCommentScalarFieldEnum)[keyof typeof DocumentCommentScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1153,10 +1242,12 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 export type BytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes'>
 
 
+
 /**
  * Reference to a field of type 'Bytes[]'
  */
 export type ListBytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes[]'>
+
 
 
 /**
@@ -1329,6 +1420,7 @@ export type GlobalOmitConfig = {
   workspaceMember?: Prisma.WorkspaceMemberOmit
   workspaceInvitation?: Prisma.WorkspaceInvitationOmit
   document?: Prisma.DocumentOmit
+  documentComment?: Prisma.DocumentCommentOmit
 }
 
 /* Types for Logging */

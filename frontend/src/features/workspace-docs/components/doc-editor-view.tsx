@@ -16,6 +16,7 @@ import {
      List,
      ListOrdered,
      ListTodo,
+     MessageSquare,
      Minus,
      RotateCcw,
      Strikethrough,
@@ -30,14 +31,21 @@ import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Placeholder from "@tiptap/extension-placeholder";
 import Collaboration from "@tiptap/extension-collaboration";
+import CollaborationCaret from "@tiptap/extension-collaboration-caret";
 import * as Y from "yjs";
+import { Awareness } from "y-protocols/awareness";
 import { ApiClientError } from "@/lib/api-client";
+import { useAuth } from "@/features/auth";
 import { useWorkspace } from "@/features/workspace";
 import { docApi } from "../api/doc.api";
 import {
      createCollaborationRoom,
+     getCollaborationColor,
+     type CollaborationPresence,
      type CollaborationStatus,
+     type CollaborationUser,
 } from "../collab/collab-room";
+import { DocCommentsPanel } from "./doc-comments-panel";
 import { ConfirmDeleteModal } from "./confirm-delete-modal";
 import { getErrorMessage } from "../hooks/use-workspace-docs";
 import type { UpdateDocPayload, WorkspaceDoc } from "../types/doc.types";
@@ -300,14 +308,18 @@ function EditorSurface({
      workspaceSlug,
      document,
      canEdit,
+     user,
 }: {
      workspaceId: string;
      workspaceSlug: string;
      document: WorkspaceDoc;
      canEdit: boolean;
+     user: CollaborationUser;
 }) {
      const router = useRouter();
      const [ydoc] = useState(() => new Y.Doc());
+     const [awareness] = useState(() => new Awareness(ydoc));
+     const [activePresence, setActivePresence] = useState<CollaborationPresence[]>([]);
      const [title, setTitle] = useState(document.title);
      const [collaborationStatus, setCollaborationStatus] =
           useState<CollaborationStatus>({ state: "connecting" });
@@ -320,6 +332,9 @@ function EditorSurface({
      const [deleting, setDeleting] = useState(false);
      const [deleteError, setDeleteError] = useState<string | null>(null);
      const [showInfo, setShowInfo] = useState(false);
+     const [showComments, setShowComments] = useState(false);
+     const [commentCount, setCommentCount] = useState(0);
+     const [commentsRefreshKey, setCommentsRefreshKey] = useState(0);
      const titleInputRef = useRef<HTMLInputElement>(null);
      const initialTitleSelectedRef = useRef(false);
      const latestPayloadRef = useRef<UpdateDocPayload>({
@@ -357,11 +372,15 @@ function EditorSurface({
                workspaceId,
                docId: document.id,
                document: ydoc,
+               awareness,
+               user,
                canEdit,
                onStatusChange: setCollaborationStatus,
+               onPresenceChange: setActivePresence,
+               onCommentsChanged: () => setCommentsRefreshKey((key) => key + 1),
           });
           return () => room.destroy();
-     }, [canEdit, document.id, workspaceId, ydoc]);
+     }, [awareness, canEdit, document.id, user, workspaceId, ydoc]);
 
      const editor = useEditor({
           extensions: [
@@ -377,6 +396,36 @@ function EditorSurface({
                Collaboration.configure({
                     document: ydoc,
                     field: "default",
+               }),
+               CollaborationCaret.configure({
+                    provider: { awareness },
+                    user,
+                    render: (collaborator) => {
+                         const caret = globalThis.document.createElement("span");
+                         const name =
+                              typeof collaborator.name === "string"
+                                   ? collaborator.name
+                                   : "Collaborator";
+                         const color =
+                              typeof collaborator.color === "string"
+                                   ? collaborator.color
+                                   : "#475467";
+                         caret.classList.add("collaboration-carets__caret");
+                         caret.style.borderColor = color;
+                         caret.setAttribute("aria-hidden", "true");
+
+                         const label = globalThis.document.createElement("span");
+                         label.classList.add("collaboration-carets__label");
+                         label.style.backgroundColor = color;
+                         label.style.color = "#ffffff";
+                         label.textContent = name;
+                         label.title =
+                              typeof collaborator.role === "string"
+                                   ? `${name} · ${collaborator.role.toLowerCase()}`
+                                   : name;
+                         caret.appendChild(label);
+                         return caret;
+                    },
                }),
           ],
           editable: canEdit,
@@ -580,7 +629,9 @@ function EditorSurface({
      return (
           <div
                className={`mx-auto grid gap-8 ${
-                    showInfo ? "max-w-6xl lg:grid-cols-[minmax(0,1fr)_16rem]" : "max-w-3xl"
+                    showInfo || showComments
+                         ? "max-w-6xl lg:grid-cols-[minmax(0,1fr)_18rem]"
+                         : "max-w-3xl"
                }`}
           >
                <div className="min-w-0">
@@ -621,6 +672,50 @@ function EditorSurface({
                     </div>
 
                     <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                         {activePresence.length > 0 && (
+                              <div
+                                   aria-label={`${activePresence.length} active collaborators`}
+                                   className="flex items-center -space-x-1.5"
+                              >
+                                   {activePresence.slice(0, 4).map((collaborator) => (
+                                        <span
+                                             key={collaborator.userId}
+                                             aria-label={`${collaborator.name}, ${collaborator.role.toLowerCase()}${collaborator.userId === user.userId ? ", you" : ""}`}
+                                             title={`${collaborator.name} · ${collaborator.role.toLowerCase()}${collaborator.userId === user.userId ? " · you" : ""}`}
+                                             style={{
+                                                  backgroundColor: collaborator.color,
+                                                  borderColor: "var(--bg-canvas)",
+                                                  color: "#ffffff",
+                                             }}
+                                             className="inline-flex h-6 w-6 items-center justify-center rounded-full border-2 text-[9px] font-semibold leading-none"
+                                        >
+                                             {collaborator.name
+                                                  .trim()
+                                                  .split(/\s+/u)
+                                                  .slice(0, 2)
+                                                  .map((part) => part[0] ?? "")
+                                                  .join("")
+                                                  .toUpperCase()}
+                                        </span>
+                                   ))}
+                                   {activePresence.length > 4 && (
+                                        <span
+                                             title={activePresence
+                                                  .slice(4)
+                                                  .map((collaborator) => collaborator.name)
+                                                  .join(", ")}
+                                             style={{
+                                                  backgroundColor: "var(--bg-subtle)",
+                                                  borderColor: "var(--bg-canvas)",
+                                                  color: "var(--text-secondary)",
+                                             }}
+                                             className="inline-flex h-6 min-w-6 items-center justify-center rounded-full border-2 px-1 text-[9px] font-medium leading-none"
+                                        >
+                                             +{activePresence.length - 4}
+                                        </span>
+                                   )}
+                              </div>
+                         )}
                          <div
                               role="status"
                               aria-live="polite"
@@ -695,7 +790,32 @@ function EditorSurface({
                          )}
                          <button
                               type="button"
-                              onClick={() => setShowInfo((visible) => !visible)}
+                              onClick={() => {
+                                   setShowInfo(false);
+                                   setShowComments((visible) => !visible);
+                              }}
+                              aria-pressed={showComments}
+                              aria-label={`Comments${commentCount ? ` (${commentCount})` : ""}`}
+                              title={showComments ? "Hide comments" : "Show comments"}
+                              style={{
+                                   backgroundColor: showComments
+                                        ? "var(--bg-subtle)"
+                                        : "transparent",
+                                   borderColor: "var(--border-hairline)",
+                                   color: "var(--text-secondary)",
+                              }}
+                              className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded border px-2 text-[10px]"
+                         >
+                              <MessageSquare className="h-3.5 w-3.5" />
+                              Comments
+                              <span className="font-mono tabular-nums">{commentCount}</span>
+                         </button>
+                         <button
+                              type="button"
+                              onClick={() => {
+                                   setShowComments(false);
+                                   setShowInfo((visible) => !visible);
+                              }}
                               aria-pressed={showInfo}
                               aria-label={showInfo ? "Hide doc info and outline" : "Show doc info and outline"}
                               title={showInfo ? "Hide doc info" : "Show doc info"}
@@ -786,7 +906,16 @@ function EditorSurface({
                </article>
                </div>
 
-               {showInfo && (
+               <DocCommentsPanel
+                    workspaceId={workspaceId}
+                    docId={document.id}
+                    userId={user.userId}
+                    isOwner={user.role === "OWNER"}
+                    open={showComments}
+                    refreshKey={commentsRefreshKey}
+                    onCountChange={setCommentCount}
+               />
+               {showInfo && !showComments && (
                     <aside
                          aria-label="Document info and outline"
                          style={{ borderColor: "var(--border-hairline)" }}
@@ -925,6 +1054,7 @@ function EditorSurface({
 
 export function DocEditorView({ docId }: { docId: string }) {
      const { currentWorkspace } = useWorkspace();
+     const { user } = useAuth();
      const [document, setDocument] = useState<WorkspaceDoc | null>(null);
      const [loading, setLoading] = useState(true);
      const [loadError, setLoadError] = useState<string | null>(null);
@@ -935,6 +1065,18 @@ export function DocEditorView({ docId }: { docId: string }) {
      const canEdit =
           currentWorkspace?.role === "OWNER" ||
           currentWorkspace?.role === "EDITOR";
+     const currentUserId = user?.id;
+     const currentUserName = user?.name;
+     const currentRole = currentWorkspace?.role;
+     const collaborationUser = useMemo<CollaborationUser | null>(() => {
+          if (!currentUserId || !currentUserName || !currentRole) return null;
+          return {
+               userId: currentUserId,
+               name: currentUserName,
+               role: currentRole,
+               color: getCollaborationColor(currentUserId),
+          };
+     }, [currentRole, currentUserId, currentUserName]);
 
      useEffect(() => {
           if (!workspaceId) return;
@@ -974,7 +1116,7 @@ export function DocEditorView({ docId }: { docId: string }) {
           };
      }, [docId, retry, workspaceId]);
 
-     if (!currentWorkspace || !workspaceId || !workspaceSlug) return null;
+     if (!currentWorkspace || !workspaceId || !workspaceSlug || !collaborationUser) return null;
 
      const docsHref = `/w/${encodeURIComponent(workspaceSlug)}/docs`;
 
@@ -1057,6 +1199,7 @@ export function DocEditorView({ docId }: { docId: string }) {
                workspaceSlug={workspaceSlug}
                document={document}
                canEdit={canEdit}
+               user={collaborationUser}
           />
      );
 }

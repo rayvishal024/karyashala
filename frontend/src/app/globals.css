@@ -61,6 +61,32 @@ body {
     color: var(--text-primary);
   }
 
+  .doc-editor-content .collaboration-carets__caret {
+    position: relative;
+    margin-right: -1px;
+    margin-left: -1px;
+    border-left: 2px solid;
+    pointer-events: none;
+  }
+
+  .doc-editor-content .collaboration-carets__label {
+    position: absolute;
+    z-index: 20;
+    top: -1.35em;
+    left: -1px;
+    display: block;
+    max-width: 12rem;
+    overflow: hidden;
+    border-radius: 3px 3px 3px 0;
+    padding: 1px 5px;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
   .doc-editor-content .tiptap > * + * {
     margin-top: 1rem;
   }

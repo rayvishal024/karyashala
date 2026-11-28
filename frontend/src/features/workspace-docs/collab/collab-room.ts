@@ -1,15 +1,42 @@
 import * as decoding from "lib0/decoding";
 import * as encoding from "lib0/encoding";
+import * as awarenessProtocol from "y-protocols/awareness";
 import * as syncProtocol from "y-protocols/sync";
 import * as Y from "yjs";
 import { API_BASE_URL } from "@/lib/api-client";
 
 const SYNC_MESSAGE = 0;
+const AWARENESS_MESSAGE = 1;
+const PRESENCE_MESSAGE = 2;
+const COMMENTS_MESSAGE = 3;
 const MAX_RECONNECT_ATTEMPTS = 10;
 const INITIAL_RECONNECT_DELAY_MS = 500;
 const MAX_RECONNECT_DELAY_MS = 15_000;
 const SYNC_TIMEOUT_MS = 10_000;
 const remoteOrigin = Symbol("remote");
+const collaboratorColors = [
+     "#b42318",
+     "#175cd3",
+     "#027a48",
+     "#6941c6",
+     "#b54708",
+     "#026aa2",
+     "#c11574",
+     "#7a2e0e",
+] as const;
+
+export type CollaborationRole = "OWNER" | "EDITOR" | "VIEWER";
+
+export interface CollaborationUser {
+     userId: string;
+     name: string;
+     role: CollaborationRole;
+     color: string;
+}
+
+export interface CollaborationPresence extends CollaborationUser {
+     lastSeen: string;
+}
 
 export type CollaborationState =
      | "connecting"
@@ -29,8 +56,55 @@ interface CollaborationRoomOptions {
      workspaceId: string;
      docId: string;
      document: Y.Doc;
+     awareness: awarenessProtocol.Awareness;
+     user: CollaborationUser;
      canEdit: boolean;
      onStatusChange: (status: CollaborationStatus) => void;
+     onPresenceChange: (presence: CollaborationPresence[]) => void;
+     onCommentsChanged: () => void;
+}
+
+export function getCollaborationColor(userId: string): string {
+     let hash = 2166136261;
+     for (let index = 0; index < userId.length; index += 1) {
+          hash = Math.imul(hash ^ userId.charCodeAt(index), 16777619);
+     }
+     return collaboratorColors[(hash >>> 0) % collaboratorColors.length];
+}
+
+function parsePresence(payload: string): CollaborationPresence[] {
+     const parsed: unknown = JSON.parse(payload);
+     if (!Array.isArray(parsed)) {
+          throw new Error("Presence payload must be an array.");
+     }
+     return parsed.map((entry: unknown) => {
+          if (
+               typeof entry !== "object" ||
+               entry === null ||
+               !("userId" in entry) ||
+               typeof entry.userId !== "string" ||
+               !("name" in entry) ||
+               typeof entry.name !== "string" ||
+               !("role" in entry) ||
+               (entry.role !== "OWNER" &&
+                    entry.role !== "EDITOR" &&
+                    entry.role !== "VIEWER") ||
+               !("color" in entry) ||
+               typeof entry.color !== "string" ||
+               !/^#[0-9a-f]{6}$/iu.test(entry.color) ||
+               !("lastSeen" in entry) ||
+               typeof entry.lastSeen !== "string"
+          ) {
+               throw new Error("Presence payload contains an invalid collaborator.");
+          }
+          return {
+               userId: entry.userId,
+               name: entry.name,
+               role: entry.role,
+               color: entry.color,
+               lastSeen: entry.lastSeen,
+          };
+     });
 }
 
 function getWebSocketUrl(workspaceId: string, docId: string): string {
@@ -80,8 +154,12 @@ export function createCollaborationRoom({
      workspaceId,
      docId,
      document,
+     awareness,
+     user,
      canEdit,
      onStatusChange,
+     onPresenceChange,
+     onCommentsChanged,
 }: CollaborationRoomOptions): { destroy: () => void } {
      let socket: WebSocket | undefined;
      let retryTimer: ReturnType<typeof setTimeout> | undefined;
@@ -91,8 +169,43 @@ export function createCollaborationRoom({
      let refreshingSession = false;
      let reconnectAttempts = 0;
 
+     awareness.setLocalStateField("user", user);
+
      const setStatus = (status: CollaborationStatus) => {
           if (!destroyed) onStatusChange(status);
+     };
+
+     const sendAwarenessUpdate = (clientIds: number[]) => {
+          if (!clientIds.length || socket?.readyState !== WebSocket.OPEN) return;
+          const encoder = encoding.createEncoder();
+          encoding.writeVarUint(encoder, AWARENESS_MESSAGE);
+          encoding.writeVarUint8Array(
+               encoder,
+               awarenessProtocol.encodeAwarenessUpdate(awareness, clientIds),
+          );
+          try {
+               socket.send(encoding.toUint8Array(encoder));
+          } catch (error) {
+               console.error("[doc-collab] Failed to send an awareness update.", {
+                    workspaceId,
+                    docId,
+                    error,
+               });
+               socket.close(1011, "Could not send awareness update.");
+          }
+     };
+
+     const onAwarenessUpdate = ({
+          added,
+          updated,
+          removed,
+     }: {
+          added: number[];
+          updated: number[];
+          removed: number[];
+     }, origin: unknown) => {
+          if (origin === remoteOrigin) return;
+          sendAwarenessUpdate([...added, ...updated, ...removed]);
      };
 
      const onDocumentUpdate = (update: Uint8Array, origin: unknown) => {
@@ -203,7 +316,28 @@ export function createCollaborationRoom({
                          : new Uint8Array(event.data);
                const messageDecoder = decoding.createDecoder(bytes);
                const messageType = decoding.readVarUint(messageDecoder);
-               if (messageType !== SYNC_MESSAGE) return;
+               if (messageType === AWARENESS_MESSAGE) {
+                    const update = decoding.readVarUint8Array(messageDecoder);
+                    awarenessProtocol.applyAwarenessUpdate(
+                         awareness,
+                         update,
+                         remoteOrigin,
+                    );
+                    return;
+               }
+               if (messageType === PRESENCE_MESSAGE) {
+                    onPresenceChange(
+                         parsePresence(decoding.readVarString(messageDecoder)),
+                    );
+                    return;
+               }
+               if (messageType === COMMENTS_MESSAGE) {
+                    onCommentsChanged();
+                    return;
+               }
+               if (messageType !== SYNC_MESSAGE) {
+                    throw new Error(`Unsupported collaboration message type ${messageType}.`);
+               }
 
                const syncTypeDecoder = decoding.createDecoder(bytes);
                decoding.readVarUint(syncTypeDecoder);
@@ -231,6 +365,7 @@ export function createCollaborationRoom({
                if (syncType === 1) {
                     if (syncTimer) clearTimeout(syncTimer);
                     syncTimer = undefined;
+                    if (hasConnected) onCommentsChanged();
                     hasConnected = true;
                     reconnectAttempts = 0;
                     console.info("[doc-collab] Yjs document is live.", {
@@ -288,6 +423,7 @@ export function createCollaborationRoom({
                     syncProtocol.writeSyncStep1(encoder, document);
                     try {
                          nextSocket.send(createSyncFrame(encoding.toUint8Array(encoder)));
+                         sendAwarenessUpdate([awareness.clientID]);
                     } catch (error) {
                          console.error(
                               "[doc-collab] Failed to send initial Yjs sync frame.",
@@ -345,6 +481,7 @@ export function createCollaborationRoom({
      };
 
      document.on("update", onDocumentUpdate);
+     awareness.on("update", onAwarenessUpdate);
      connect();
 
      return {
@@ -354,8 +491,13 @@ export function createCollaborationRoom({
                if (retryTimer) clearTimeout(retryTimer);
                if (syncTimer) clearTimeout(syncTimer);
                document.off("update", onDocumentUpdate);
+               awareness.off("update", onAwarenessUpdate);
+               if (socket?.readyState === WebSocket.OPEN) {
+                    awareness.setLocalState(null);
+               }
                socket?.close(1000, "Collaboration room closed.");
                socket = undefined;
+               awareness.destroy();
           },
      };
 }

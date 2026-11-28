@@ -236,6 +236,7 @@ export type UserWhereInput = {
   sentInvitations?: Prisma.WorkspaceInvitationListRelationFilter
   documentsCreated?: Prisma.DocumentListRelationFilter
   documentsUpdated?: Prisma.DocumentListRelationFilter
+  commentsAuthored?: Prisma.DocumentCommentListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -256,6 +257,7 @@ export type UserOrderByWithRelationInput = {
   sentInvitations?: Prisma.WorkspaceInvitationOrderByRelationAggregateInput
   documentsCreated?: Prisma.DocumentOrderByRelationAggregateInput
   documentsUpdated?: Prisma.DocumentOrderByRelationAggregateInput
+  commentsAuthored?: Prisma.DocumentCommentOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -279,6 +281,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   sentInvitations?: Prisma.WorkspaceInvitationListRelationFilter
   documentsCreated?: Prisma.DocumentListRelationFilter
   documentsUpdated?: Prisma.DocumentListRelationFilter
+  commentsAuthored?: Prisma.DocumentCommentListRelationFilter
 }, "id" | "email" | "googleId">
 
 export type UserOrderByWithAggregationInput = {
@@ -333,6 +336,7 @@ export type UserCreateInput = {
   sentInvitations?: Prisma.WorkspaceInvitationCreateNestedManyWithoutInvitedByInput
   documentsCreated?: Prisma.DocumentCreateNestedManyWithoutCreatedByInput
   documentsUpdated?: Prisma.DocumentCreateNestedManyWithoutUpdatedByInput
+  commentsAuthored?: Prisma.DocumentCommentCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -353,6 +357,7 @@ export type UserUncheckedCreateInput = {
   sentInvitations?: Prisma.WorkspaceInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   documentsCreated?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatedByInput
   documentsUpdated?: Prisma.DocumentUncheckedCreateNestedManyWithoutUpdatedByInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUpdateInput = {
@@ -373,6 +378,7 @@ export type UserUpdateInput = {
   sentInvitations?: Prisma.WorkspaceInvitationUpdateManyWithoutInvitedByNestedInput
   documentsCreated?: Prisma.DocumentUpdateManyWithoutCreatedByNestedInput
   documentsUpdated?: Prisma.DocumentUpdateManyWithoutUpdatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -393,6 +399,7 @@ export type UserUncheckedUpdateInput = {
   sentInvitations?: Prisma.WorkspaceInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   documentsCreated?: Prisma.DocumentUncheckedUpdateManyWithoutCreatedByNestedInput
   documentsUpdated?: Prisma.DocumentUncheckedUpdateManyWithoutUpdatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -592,6 +599,20 @@ export type UserUpdateOneRequiredWithoutDocumentsUpdatedNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDocumentsUpdatedInput, Prisma.UserUpdateWithoutDocumentsUpdatedInput>, Prisma.UserUncheckedUpdateWithoutDocumentsUpdatedInput>
 }
 
+export type UserCreateNestedOneWithoutCommentsAuthoredInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCommentsAuthoredInput, Prisma.UserUncheckedCreateWithoutCommentsAuthoredInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCommentsAuthoredInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCommentsAuthoredNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCommentsAuthoredInput, Prisma.UserUncheckedCreateWithoutCommentsAuthoredInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCommentsAuthoredInput
+  upsert?: Prisma.UserUpsertWithoutCommentsAuthoredInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCommentsAuthoredInput, Prisma.UserUpdateWithoutCommentsAuthoredInput>, Prisma.UserUncheckedUpdateWithoutCommentsAuthoredInput>
+}
+
 export type UserCreateWithoutSessionsInput = {
   id?: string
   email: string
@@ -609,6 +630,7 @@ export type UserCreateWithoutSessionsInput = {
   sentInvitations?: Prisma.WorkspaceInvitationCreateNestedManyWithoutInvitedByInput
   documentsCreated?: Prisma.DocumentCreateNestedManyWithoutCreatedByInput
   documentsUpdated?: Prisma.DocumentCreateNestedManyWithoutUpdatedByInput
+  commentsAuthored?: Prisma.DocumentCommentCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -628,6 +650,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   sentInvitations?: Prisma.WorkspaceInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   documentsCreated?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatedByInput
   documentsUpdated?: Prisma.DocumentUncheckedCreateNestedManyWithoutUpdatedByInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -663,6 +686,7 @@ export type UserUpdateWithoutSessionsInput = {
   sentInvitations?: Prisma.WorkspaceInvitationUpdateManyWithoutInvitedByNestedInput
   documentsCreated?: Prisma.DocumentUpdateManyWithoutCreatedByNestedInput
   documentsUpdated?: Prisma.DocumentUpdateManyWithoutUpdatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -682,6 +706,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   sentInvitations?: Prisma.WorkspaceInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   documentsCreated?: Prisma.DocumentUncheckedUpdateManyWithoutCreatedByNestedInput
   documentsUpdated?: Prisma.DocumentUncheckedUpdateManyWithoutUpdatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutWorkspacesOwnedInput = {
@@ -701,6 +726,7 @@ export type UserCreateWithoutWorkspacesOwnedInput = {
   sentInvitations?: Prisma.WorkspaceInvitationCreateNestedManyWithoutInvitedByInput
   documentsCreated?: Prisma.DocumentCreateNestedManyWithoutCreatedByInput
   documentsUpdated?: Prisma.DocumentCreateNestedManyWithoutUpdatedByInput
+  commentsAuthored?: Prisma.DocumentCommentCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutWorkspacesOwnedInput = {
@@ -720,6 +746,7 @@ export type UserUncheckedCreateWithoutWorkspacesOwnedInput = {
   sentInvitations?: Prisma.WorkspaceInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   documentsCreated?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatedByInput
   documentsUpdated?: Prisma.DocumentUncheckedCreateNestedManyWithoutUpdatedByInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutWorkspacesOwnedInput = {
@@ -755,6 +782,7 @@ export type UserUpdateWithoutWorkspacesOwnedInput = {
   sentInvitations?: Prisma.WorkspaceInvitationUpdateManyWithoutInvitedByNestedInput
   documentsCreated?: Prisma.DocumentUpdateManyWithoutCreatedByNestedInput
   documentsUpdated?: Prisma.DocumentUpdateManyWithoutUpdatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWorkspacesOwnedInput = {
@@ -774,6 +802,7 @@ export type UserUncheckedUpdateWithoutWorkspacesOwnedInput = {
   sentInvitations?: Prisma.WorkspaceInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   documentsCreated?: Prisma.DocumentUncheckedUpdateManyWithoutCreatedByNestedInput
   documentsUpdated?: Prisma.DocumentUncheckedUpdateManyWithoutUpdatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutWorkspaceMembersInput = {
@@ -793,6 +822,7 @@ export type UserCreateWithoutWorkspaceMembersInput = {
   sentInvitations?: Prisma.WorkspaceInvitationCreateNestedManyWithoutInvitedByInput
   documentsCreated?: Prisma.DocumentCreateNestedManyWithoutCreatedByInput
   documentsUpdated?: Prisma.DocumentCreateNestedManyWithoutUpdatedByInput
+  commentsAuthored?: Prisma.DocumentCommentCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutWorkspaceMembersInput = {
@@ -812,6 +842,7 @@ export type UserUncheckedCreateWithoutWorkspaceMembersInput = {
   sentInvitations?: Prisma.WorkspaceInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   documentsCreated?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatedByInput
   documentsUpdated?: Prisma.DocumentUncheckedCreateNestedManyWithoutUpdatedByInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutWorkspaceMembersInput = {
@@ -847,6 +878,7 @@ export type UserUpdateWithoutWorkspaceMembersInput = {
   sentInvitations?: Prisma.WorkspaceInvitationUpdateManyWithoutInvitedByNestedInput
   documentsCreated?: Prisma.DocumentUpdateManyWithoutCreatedByNestedInput
   documentsUpdated?: Prisma.DocumentUpdateManyWithoutUpdatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWorkspaceMembersInput = {
@@ -866,6 +898,7 @@ export type UserUncheckedUpdateWithoutWorkspaceMembersInput = {
   sentInvitations?: Prisma.WorkspaceInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   documentsCreated?: Prisma.DocumentUncheckedUpdateManyWithoutCreatedByNestedInput
   documentsUpdated?: Prisma.DocumentUncheckedUpdateManyWithoutUpdatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutSentInvitationsInput = {
@@ -885,6 +918,7 @@ export type UserCreateWithoutSentInvitationsInput = {
   workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput
   documentsCreated?: Prisma.DocumentCreateNestedManyWithoutCreatedByInput
   documentsUpdated?: Prisma.DocumentCreateNestedManyWithoutUpdatedByInput
+  commentsAuthored?: Prisma.DocumentCommentCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutSentInvitationsInput = {
@@ -904,6 +938,7 @@ export type UserUncheckedCreateWithoutSentInvitationsInput = {
   workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput
   documentsCreated?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatedByInput
   documentsUpdated?: Prisma.DocumentUncheckedCreateNestedManyWithoutUpdatedByInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutSentInvitationsInput = {
@@ -939,6 +974,7 @@ export type UserUpdateWithoutSentInvitationsInput = {
   workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput
   documentsCreated?: Prisma.DocumentUpdateManyWithoutCreatedByNestedInput
   documentsUpdated?: Prisma.DocumentUpdateManyWithoutUpdatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSentInvitationsInput = {
@@ -958,6 +994,7 @@ export type UserUncheckedUpdateWithoutSentInvitationsInput = {
   workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput
   documentsCreated?: Prisma.DocumentUncheckedUpdateManyWithoutCreatedByNestedInput
   documentsUpdated?: Prisma.DocumentUncheckedUpdateManyWithoutUpdatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserCreateWithoutDocumentsCreatedInput = {
@@ -977,6 +1014,7 @@ export type UserCreateWithoutDocumentsCreatedInput = {
   workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.WorkspaceInvitationCreateNestedManyWithoutInvitedByInput
   documentsUpdated?: Prisma.DocumentCreateNestedManyWithoutUpdatedByInput
+  commentsAuthored?: Prisma.DocumentCommentCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutDocumentsCreatedInput = {
@@ -996,6 +1034,7 @@ export type UserUncheckedCreateWithoutDocumentsCreatedInput = {
   workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.WorkspaceInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   documentsUpdated?: Prisma.DocumentUncheckedCreateNestedManyWithoutUpdatedByInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutDocumentsCreatedInput = {
@@ -1020,6 +1059,7 @@ export type UserCreateWithoutDocumentsUpdatedInput = {
   workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.WorkspaceInvitationCreateNestedManyWithoutInvitedByInput
   documentsCreated?: Prisma.DocumentCreateNestedManyWithoutCreatedByInput
+  commentsAuthored?: Prisma.DocumentCommentCreateNestedManyWithoutAuthorInput
 }
 
 export type UserUncheckedCreateWithoutDocumentsUpdatedInput = {
@@ -1039,6 +1079,7 @@ export type UserUncheckedCreateWithoutDocumentsUpdatedInput = {
   workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput
   sentInvitations?: Prisma.WorkspaceInvitationUncheckedCreateNestedManyWithoutInvitedByInput
   documentsCreated?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatedByInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedCreateNestedManyWithoutAuthorInput
 }
 
 export type UserCreateOrConnectWithoutDocumentsUpdatedInput = {
@@ -1074,6 +1115,7 @@ export type UserUpdateWithoutDocumentsCreatedInput = {
   workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.WorkspaceInvitationUpdateManyWithoutInvitedByNestedInput
   documentsUpdated?: Prisma.DocumentUpdateManyWithoutUpdatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDocumentsCreatedInput = {
@@ -1093,6 +1135,7 @@ export type UserUncheckedUpdateWithoutDocumentsCreatedInput = {
   workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.WorkspaceInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   documentsUpdated?: Prisma.DocumentUncheckedUpdateManyWithoutUpdatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUpsertWithoutDocumentsUpdatedInput = {
@@ -1123,6 +1166,7 @@ export type UserUpdateWithoutDocumentsUpdatedInput = {
   workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.WorkspaceInvitationUpdateManyWithoutInvitedByNestedInput
   documentsCreated?: Prisma.DocumentUpdateManyWithoutCreatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUpdateManyWithoutAuthorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutDocumentsUpdatedInput = {
@@ -1142,6 +1186,103 @@ export type UserUncheckedUpdateWithoutDocumentsUpdatedInput = {
   workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput
   sentInvitations?: Prisma.WorkspaceInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
   documentsCreated?: Prisma.DocumentUncheckedUpdateManyWithoutCreatedByNestedInput
+  commentsAuthored?: Prisma.DocumentCommentUncheckedUpdateManyWithoutAuthorNestedInput
+}
+
+export type UserCreateWithoutCommentsAuthoredInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  googleId?: string | null
+  name: string
+  avatar?: string | null
+  role?: $Enums.Role
+  provider?: $Enums.AuthProvider
+  isVerified?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  workspacesOwned?: Prisma.WorkspaceCreateNestedManyWithoutOwnerInput
+  workspaceMembers?: Prisma.WorkspaceMemberCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.WorkspaceInvitationCreateNestedManyWithoutInvitedByInput
+  documentsCreated?: Prisma.DocumentCreateNestedManyWithoutCreatedByInput
+  documentsUpdated?: Prisma.DocumentCreateNestedManyWithoutUpdatedByInput
+}
+
+export type UserUncheckedCreateWithoutCommentsAuthoredInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  googleId?: string | null
+  name: string
+  avatar?: string | null
+  role?: $Enums.Role
+  provider?: $Enums.AuthProvider
+  isVerified?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  workspacesOwned?: Prisma.WorkspaceUncheckedCreateNestedManyWithoutOwnerInput
+  workspaceMembers?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutUserInput
+  sentInvitations?: Prisma.WorkspaceInvitationUncheckedCreateNestedManyWithoutInvitedByInput
+  documentsCreated?: Prisma.DocumentUncheckedCreateNestedManyWithoutCreatedByInput
+  documentsUpdated?: Prisma.DocumentUncheckedCreateNestedManyWithoutUpdatedByInput
+}
+
+export type UserCreateOrConnectWithoutCommentsAuthoredInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCommentsAuthoredInput, Prisma.UserUncheckedCreateWithoutCommentsAuthoredInput>
+}
+
+export type UserUpsertWithoutCommentsAuthoredInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCommentsAuthoredInput, Prisma.UserUncheckedUpdateWithoutCommentsAuthoredInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCommentsAuthoredInput, Prisma.UserUncheckedCreateWithoutCommentsAuthoredInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCommentsAuthoredInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCommentsAuthoredInput, Prisma.UserUncheckedUpdateWithoutCommentsAuthoredInput>
+}
+
+export type UserUpdateWithoutCommentsAuthoredInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  workspacesOwned?: Prisma.WorkspaceUpdateManyWithoutOwnerNestedInput
+  workspaceMembers?: Prisma.WorkspaceMemberUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.WorkspaceInvitationUpdateManyWithoutInvitedByNestedInput
+  documentsCreated?: Prisma.DocumentUpdateManyWithoutCreatedByNestedInput
+  documentsUpdated?: Prisma.DocumentUpdateManyWithoutUpdatedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCommentsAuthoredInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  provider?: Prisma.EnumAuthProviderFieldUpdateOperationsInput | $Enums.AuthProvider
+  isVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  workspacesOwned?: Prisma.WorkspaceUncheckedUpdateManyWithoutOwnerNestedInput
+  workspaceMembers?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutUserNestedInput
+  sentInvitations?: Prisma.WorkspaceInvitationUncheckedUpdateManyWithoutInvitedByNestedInput
+  documentsCreated?: Prisma.DocumentUncheckedUpdateManyWithoutCreatedByNestedInput
+  documentsUpdated?: Prisma.DocumentUncheckedUpdateManyWithoutUpdatedByNestedInput
 }
 
 
@@ -1156,6 +1297,7 @@ export type UserCountOutputType = {
   sentInvitations: number
   documentsCreated: number
   documentsUpdated: number
+  commentsAuthored: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1165,6 +1307,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   sentInvitations?: boolean | UserCountOutputTypeCountSentInvitationsArgs
   documentsCreated?: boolean | UserCountOutputTypeCountDocumentsCreatedArgs
   documentsUpdated?: boolean | UserCountOutputTypeCountDocumentsUpdatedArgs
+  commentsAuthored?: boolean | UserCountOutputTypeCountCommentsAuthoredArgs
 }
 
 /**
@@ -1219,6 +1362,13 @@ export type UserCountOutputTypeCountDocumentsUpdatedArgs<ExtArgs extends runtime
   where?: Prisma.DocumentWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCommentsAuthoredArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DocumentCommentWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1238,6 +1388,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   sentInvitations?: boolean | Prisma.User$sentInvitationsArgs<ExtArgs>
   documentsCreated?: boolean | Prisma.User$documentsCreatedArgs<ExtArgs>
   documentsUpdated?: boolean | Prisma.User$documentsUpdatedArgs<ExtArgs>
+  commentsAuthored?: boolean | Prisma.User$commentsAuthoredArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1291,6 +1442,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   sentInvitations?: boolean | Prisma.User$sentInvitationsArgs<ExtArgs>
   documentsCreated?: boolean | Prisma.User$documentsCreatedArgs<ExtArgs>
   documentsUpdated?: boolean | Prisma.User$documentsUpdatedArgs<ExtArgs>
+  commentsAuthored?: boolean | Prisma.User$commentsAuthoredArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1305,6 +1457,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     sentInvitations: Prisma.$WorkspaceInvitationPayload<ExtArgs>[]
     documentsCreated: Prisma.$DocumentPayload<ExtArgs>[]
     documentsUpdated: Prisma.$DocumentPayload<ExtArgs>[]
+    commentsAuthored: Prisma.$DocumentCommentPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1718,6 +1871,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   sentInvitations<T extends Prisma.User$sentInvitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sentInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkspaceInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   documentsCreated<T extends Prisma.User$documentsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$documentsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   documentsUpdated<T extends Prisma.User$documentsUpdatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$documentsUpdatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocumentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  commentsAuthored<T extends Prisma.User$commentsAuthoredArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$commentsAuthoredArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocumentCommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2292,6 +2446,30 @@ export type User$documentsUpdatedArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.DocumentScalarFieldEnum | Prisma.DocumentScalarFieldEnum[]
+}
+
+/**
+ * User.commentsAuthored
+ */
+export type User$commentsAuthoredArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DocumentComment
+   */
+  select?: Prisma.DocumentCommentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DocumentComment
+   */
+  omit?: Prisma.DocumentCommentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DocumentCommentInclude<ExtArgs> | null
+  where?: Prisma.DocumentCommentWhereInput
+  orderBy?: Prisma.DocumentCommentOrderByWithRelationInput | Prisma.DocumentCommentOrderByWithRelationInput[]
+  cursor?: Prisma.DocumentCommentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DocumentCommentScalarFieldEnum | Prisma.DocumentCommentScalarFieldEnum[]
 }
 
 /**

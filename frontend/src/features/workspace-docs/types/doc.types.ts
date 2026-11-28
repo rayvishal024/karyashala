@@ -26,3 +26,27 @@ export interface UpdateDocPayload {
      contentJson?: object;
      contentText?: string;
 }
+
+export interface DocumentCommentAuthor {
+      id: string;
+      name: string;
+      email: string;
+      avatar: string | null;
+}
+
+export interface DocumentComment {
+      id: string;
+      documentId: string;
+      workspaceId: string;
+      parentId: string | null;
+      body: string;
+      createdAt: string;
+      updatedAt: string;
+      author: DocumentCommentAuthor;
+      replies?: DocumentComment[];
+}
+
+export interface CreateDocumentCommentPayload {
+      body: string;
+      parentId?: string;
+}

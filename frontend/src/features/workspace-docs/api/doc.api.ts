@@ -1,6 +1,8 @@
 import { apiFetch } from "@/lib/api-client";
 import type {
      CreateDocPayload,
+     CreateDocumentCommentPayload,
+     DocumentComment,
      DocumentPerson,
      UpdateDocPayload,
      WorkspaceDoc,
@@ -95,6 +97,40 @@ export const docApi = {
      ): Promise<{ id: string }> {
           return apiFetch<{ id: string }>(
                `/workspaces/${encodeURIComponent(workspaceId)}/docs/${encodeURIComponent(docId)}`,
+               { method: "DELETE" },
+          );
+     },
+
+     listDocComments(
+          workspaceId: string,
+          docId: string,
+     ): Promise<{ comments: DocumentComment[] }> {
+          return apiFetch<{ comments: DocumentComment[] }>(
+               `/workspaces/${encodeURIComponent(workspaceId)}/docs/${encodeURIComponent(docId)}/comments`,
+          );
+     },
+
+     createDocComment(
+          workspaceId: string,
+          docId: string,
+          payload: CreateDocumentCommentPayload,
+     ): Promise<{ comment: DocumentComment }> {
+          return apiFetch<{ comment: DocumentComment }>(
+               `/workspaces/${encodeURIComponent(workspaceId)}/docs/${encodeURIComponent(docId)}/comments`,
+               {
+                    method: "POST",
+                    body: JSON.stringify(payload),
+               },
+          );
+     },
+
+     deleteDocComment(
+          workspaceId: string,
+          docId: string,
+          commentId: string,
+     ): Promise<{ id: string }> {
+          return apiFetch<{ id: string }>(
+               `/workspaces/${encodeURIComponent(workspaceId)}/docs/${encodeURIComponent(docId)}/comments/${encodeURIComponent(commentId)}`,
                { method: "DELETE" },
           );
      },
