@@ -9,6 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@tiptap/extension-placeholder": "^3.35.1",
+    "@tiptap/extension-task-item": "^3.35.1",
+    "@tiptap/extension-task-list": "^3.35.1",
+    "@tiptap/pm": "^3.35.1",
+    "@tiptap/react": "^3.35.1",
+    "@tiptap/starter-kit": "^3.35.1",
     "lucide-react": "^1.81.0",
     "next": "16.4.6",
     "react": "19.3.0",

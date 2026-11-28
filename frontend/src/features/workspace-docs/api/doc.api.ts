@@ -2,6 +2,7 @@ import { apiFetch } from "@/lib/api-client";
 import type {
      CreateDocPayload,
      DocumentPerson,
+     UpdateDocPayload,
      WorkspaceDoc,
 } from "../types/doc.types";
 
@@ -30,6 +31,15 @@ function isWorkspaceDoc(value: unknown): value is WorkspaceDoc {
 }
 
 export const docApi = {
+     getDoc(
+          workspaceId: string,
+          docId: string,
+     ): Promise<{ document: WorkspaceDoc }> {
+          return apiFetch<{ document: WorkspaceDoc }>(
+               `/workspaces/${encodeURIComponent(workspaceId)}/docs/${encodeURIComponent(docId)}`,
+          );
+     },
+
      async listDocs(workspaceId: string): Promise<{ documents: WorkspaceDoc[] }> {
           const response = await apiFetch<unknown>(
                `/workspaces/${encodeURIComponent(workspaceId)}/docs`,
@@ -61,6 +71,20 @@ export const docApi = {
                {
                     method: "POST",
                     body: JSON.stringify(payload ?? {}),
+               },
+          );
+     },
+
+     updateDoc(
+          workspaceId: string,
+          docId: string,
+          payload: UpdateDocPayload,
+     ): Promise<{ document: WorkspaceDoc }> {
+          return apiFetch<{ document: WorkspaceDoc }>(
+               `/workspaces/${encodeURIComponent(workspaceId)}/docs/${encodeURIComponent(docId)}`,
+               {
+                    method: "PATCH",
+                    body: JSON.stringify(payload),
                },
           );
      },

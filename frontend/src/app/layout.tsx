@@ -14,7 +14,7 @@ const themeInitScript = `
       var stored = localStorage.getItem('karyashala-theme');
       var resolved = (stored === 'light' || stored === 'dark')
         ? stored
-        : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        : 'dark';
       document.documentElement.classList.add(resolved);
       document.documentElement.style.colorScheme = resolved;
     } catch (e) {

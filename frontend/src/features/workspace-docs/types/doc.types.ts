@@ -9,7 +9,7 @@ export interface WorkspaceDoc {
      workspaceId: string;
      title: string;
      excerpt?: string;
-     contentJson?: Record<string, unknown> | null;
+     contentJson?: object | null;
      contentText?: string;
      createdAt: string;
      updatedAt: string;
@@ -19,4 +19,10 @@ export interface WorkspaceDoc {
 
 export interface CreateDocPayload {
      title?: string;
+}
+
+export interface UpdateDocPayload {
+     title?: string;
+     contentJson?: object;
+     contentText?: string;
 }
