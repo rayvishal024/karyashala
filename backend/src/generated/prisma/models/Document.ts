@@ -28,6 +28,7 @@ export type DocumentMinAggregateOutputType = {
   id: string | null
   workspaceId: string | null
   title: string | null
+  yjsState: runtime.Bytes | null
   contentText: string | null
   createdById: string | null
   updatedById: string | null
@@ -39,6 +40,7 @@ export type DocumentMaxAggregateOutputType = {
   id: string | null
   workspaceId: string | null
   title: string | null
+  yjsState: runtime.Bytes | null
   contentText: string | null
   createdById: string | null
   updatedById: string | null
@@ -51,6 +53,7 @@ export type DocumentCountAggregateOutputType = {
   workspaceId: number
   title: number
   contentJson: number
+  yjsState: number
   contentText: number
   createdById: number
   updatedById: number
@@ -64,6 +67,7 @@ export type DocumentMinAggregateInputType = {
   id?: true
   workspaceId?: true
   title?: true
+  yjsState?: true
   contentText?: true
   createdById?: true
   updatedById?: true
@@ -75,6 +79,7 @@ export type DocumentMaxAggregateInputType = {
   id?: true
   workspaceId?: true
   title?: true
+  yjsState?: true
   contentText?: true
   createdById?: true
   updatedById?: true
@@ -87,6 +92,7 @@ export type DocumentCountAggregateInputType = {
   workspaceId?: true
   title?: true
   contentJson?: true
+  yjsState?: true
   contentText?: true
   createdById?: true
   updatedById?: true
@@ -172,6 +178,7 @@ export type DocumentGroupByOutputType = {
   workspaceId: string
   title: string
   contentJson: runtime.JsonValue | null
+  yjsState: runtime.Bytes | null
   contentText: string
   createdById: string
   updatedById: string
@@ -205,6 +212,7 @@ export type DocumentWhereInput = {
   workspaceId?: Prisma.StringFilter<"Document"> | string
   title?: Prisma.StringFilter<"Document"> | string
   contentJson?: Prisma.JsonNullableFilter<"Document">
+  yjsState?: Prisma.BytesNullableFilter<"Document"> | runtime.Bytes | null
   contentText?: Prisma.StringFilter<"Document"> | string
   createdById?: Prisma.StringFilter<"Document"> | string
   updatedById?: Prisma.StringFilter<"Document"> | string
@@ -220,6 +228,7 @@ export type DocumentOrderByWithRelationInput = {
   workspaceId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   contentJson?: Prisma.SortOrderInput | Prisma.SortOrder
+  yjsState?: Prisma.SortOrderInput | Prisma.SortOrder
   contentText?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   updatedById?: Prisma.SortOrder
@@ -238,6 +247,7 @@ export type DocumentWhereUniqueInput = Prisma.AtLeast<{
   workspaceId?: Prisma.StringFilter<"Document"> | string
   title?: Prisma.StringFilter<"Document"> | string
   contentJson?: Prisma.JsonNullableFilter<"Document">
+  yjsState?: Prisma.BytesNullableFilter<"Document"> | runtime.Bytes | null
   contentText?: Prisma.StringFilter<"Document"> | string
   createdById?: Prisma.StringFilter<"Document"> | string
   updatedById?: Prisma.StringFilter<"Document"> | string
@@ -253,6 +263,7 @@ export type DocumentOrderByWithAggregationInput = {
   workspaceId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   contentJson?: Prisma.SortOrderInput | Prisma.SortOrder
+  yjsState?: Prisma.SortOrderInput | Prisma.SortOrder
   contentText?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   updatedById?: Prisma.SortOrder
@@ -271,6 +282,7 @@ export type DocumentScalarWhereWithAggregatesInput = {
   workspaceId?: Prisma.StringWithAggregatesFilter<"Document"> | string
   title?: Prisma.StringWithAggregatesFilter<"Document"> | string
   contentJson?: Prisma.JsonNullableWithAggregatesFilter<"Document">
+  yjsState?: Prisma.BytesNullableWithAggregatesFilter<"Document"> | runtime.Bytes | null
   contentText?: Prisma.StringWithAggregatesFilter<"Document"> | string
   createdById?: Prisma.StringWithAggregatesFilter<"Document"> | string
   updatedById?: Prisma.StringWithAggregatesFilter<"Document"> | string
@@ -282,6 +294,7 @@ export type DocumentCreateInput = {
   id?: string
   title?: string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: runtime.Bytes | null
   contentText?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -295,6 +308,7 @@ export type DocumentUncheckedCreateInput = {
   workspaceId: string
   title?: string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: runtime.Bytes | null
   contentText?: string
   createdById: string
   updatedById: string
@@ -306,6 +320,7 @@ export type DocumentUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -319,6 +334,7 @@ export type DocumentUncheckedUpdateInput = {
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   updatedById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -331,6 +347,7 @@ export type DocumentCreateManyInput = {
   workspaceId: string
   title?: string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: runtime.Bytes | null
   contentText?: string
   createdById: string
   updatedById: string
@@ -342,6 +359,7 @@ export type DocumentUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -352,6 +370,7 @@ export type DocumentUncheckedUpdateManyInput = {
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   updatedById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -374,6 +393,7 @@ export type DocumentCountOrderByAggregateInput = {
   workspaceId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   contentJson?: Prisma.SortOrder
+  yjsState?: Prisma.SortOrder
   contentText?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   updatedById?: Prisma.SortOrder
@@ -385,6 +405,7 @@ export type DocumentMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  yjsState?: Prisma.SortOrder
   contentText?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   updatedById?: Prisma.SortOrder
@@ -396,6 +417,7 @@ export type DocumentMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  yjsState?: Prisma.SortOrder
   contentText?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   updatedById?: Prisma.SortOrder
@@ -529,10 +551,15 @@ export type DocumentUncheckedUpdateManyWithoutWorkspaceNestedInput = {
   deleteMany?: Prisma.DocumentScalarWhereInput | Prisma.DocumentScalarWhereInput[]
 }
 
+export type NullableBytesFieldUpdateOperationsInput = {
+  set?: runtime.Bytes | null
+}
+
 export type DocumentCreateWithoutCreatedByInput = {
   id?: string
   title?: string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: runtime.Bytes | null
   contentText?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -545,6 +572,7 @@ export type DocumentUncheckedCreateWithoutCreatedByInput = {
   workspaceId: string
   title?: string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: runtime.Bytes | null
   contentText?: string
   updatedById: string
   createdAt?: Date | string
@@ -565,6 +593,7 @@ export type DocumentCreateWithoutUpdatedByInput = {
   id?: string
   title?: string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: runtime.Bytes | null
   contentText?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -577,6 +606,7 @@ export type DocumentUncheckedCreateWithoutUpdatedByInput = {
   workspaceId: string
   title?: string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: runtime.Bytes | null
   contentText?: string
   createdById: string
   createdAt?: Date | string
@@ -617,6 +647,7 @@ export type DocumentScalarWhereInput = {
   workspaceId?: Prisma.StringFilter<"Document"> | string
   title?: Prisma.StringFilter<"Document"> | string
   contentJson?: Prisma.JsonNullableFilter<"Document">
+  yjsState?: Prisma.BytesNullableFilter<"Document"> | runtime.Bytes | null
   contentText?: Prisma.StringFilter<"Document"> | string
   createdById?: Prisma.StringFilter<"Document"> | string
   updatedById?: Prisma.StringFilter<"Document"> | string
@@ -644,6 +675,7 @@ export type DocumentCreateWithoutWorkspaceInput = {
   id?: string
   title?: string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: runtime.Bytes | null
   contentText?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -655,6 +687,7 @@ export type DocumentUncheckedCreateWithoutWorkspaceInput = {
   id?: string
   title?: string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: runtime.Bytes | null
   contentText?: string
   createdById: string
   updatedById: string
@@ -693,6 +726,7 @@ export type DocumentCreateManyCreatedByInput = {
   workspaceId: string
   title?: string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: runtime.Bytes | null
   contentText?: string
   updatedById: string
   createdAt?: Date | string
@@ -704,6 +738,7 @@ export type DocumentCreateManyUpdatedByInput = {
   workspaceId: string
   title?: string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: runtime.Bytes | null
   contentText?: string
   createdById: string
   createdAt?: Date | string
@@ -714,6 +749,7 @@ export type DocumentUpdateWithoutCreatedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -726,6 +762,7 @@ export type DocumentUncheckedUpdateWithoutCreatedByInput = {
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   updatedById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -737,6 +774,7 @@ export type DocumentUncheckedUpdateManyWithoutCreatedByInput = {
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   updatedById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -747,6 +785,7 @@ export type DocumentUpdateWithoutUpdatedByInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -759,6 +798,7 @@ export type DocumentUncheckedUpdateWithoutUpdatedByInput = {
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -770,6 +810,7 @@ export type DocumentUncheckedUpdateManyWithoutUpdatedByInput = {
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -780,6 +821,7 @@ export type DocumentCreateManyWorkspaceInput = {
   id?: string
   title?: string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: runtime.Bytes | null
   contentText?: string
   createdById: string
   updatedById: string
@@ -791,6 +833,7 @@ export type DocumentUpdateWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -802,6 +845,7 @@ export type DocumentUncheckedUpdateWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   updatedById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -813,6 +857,7 @@ export type DocumentUncheckedUpdateManyWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   contentJson?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  yjsState?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   contentText?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   updatedById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -827,6 +872,7 @@ export type DocumentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   workspaceId?: boolean
   title?: boolean
   contentJson?: boolean
+  yjsState?: boolean
   contentText?: boolean
   createdById?: boolean
   updatedById?: boolean
@@ -842,6 +888,7 @@ export type DocumentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   workspaceId?: boolean
   title?: boolean
   contentJson?: boolean
+  yjsState?: boolean
   contentText?: boolean
   createdById?: boolean
   updatedById?: boolean
@@ -857,6 +904,7 @@ export type DocumentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   workspaceId?: boolean
   title?: boolean
   contentJson?: boolean
+  yjsState?: boolean
   contentText?: boolean
   createdById?: boolean
   updatedById?: boolean
@@ -872,6 +920,7 @@ export type DocumentSelectScalar = {
   workspaceId?: boolean
   title?: boolean
   contentJson?: boolean
+  yjsState?: boolean
   contentText?: boolean
   createdById?: boolean
   updatedById?: boolean
@@ -879,7 +928,7 @@ export type DocumentSelectScalar = {
   updatedAt?: boolean
 }
 
-export type DocumentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "title" | "contentJson" | "contentText" | "createdById" | "updatedById" | "createdAt" | "updatedAt", ExtArgs["result"]["document"]>
+export type DocumentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "title" | "contentJson" | "yjsState" | "contentText" | "createdById" | "updatedById" | "createdAt" | "updatedAt", ExtArgs["result"]["document"]>
 export type DocumentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -908,6 +957,7 @@ export type $DocumentPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     workspaceId: string
     title: string
     contentJson: runtime.JsonValue | null
+    yjsState: runtime.Bytes | null
     contentText: string
     createdById: string
     updatedById: string
@@ -1343,6 +1393,7 @@ export interface DocumentFieldRefs {
   readonly workspaceId: Prisma.FieldRef<"Document", 'String'>
   readonly title: Prisma.FieldRef<"Document", 'String'>
   readonly contentJson: Prisma.FieldRef<"Document", 'Json'>
+  readonly yjsState: Prisma.FieldRef<"Document", 'Bytes'>
   readonly contentText: Prisma.FieldRef<"Document", 'String'>
   readonly createdById: Prisma.FieldRef<"Document", 'String'>
   readonly updatedById: Prisma.FieldRef<"Document", 'String'>

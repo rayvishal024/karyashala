@@ -154,6 +154,7 @@ export const DocumentScalarFieldEnum = {
   workspaceId: 'workspaceId',
   title: 'title',
   contentJson: 'contentJson',
+  yjsState: 'yjsState',
   contentText: 'contentText',
   createdById: 'createdById',
   updatedById: 'updatedById',

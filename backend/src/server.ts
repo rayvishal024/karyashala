@@ -1,11 +1,13 @@
 
 import app from "./app.js";
+import { createServer } from "node:http";
 
 import { env } from "./config/index.js";
 import {
      connectDatabase,
      disconnectDatabase,
 } from "./config/prisma.js";
+import { attachDocCollaboration } from "./modules/doc-collab/doc-collab.server.js";
 import { logger } from "./shared/logger/index.js";
 
 async function startServer(): Promise<void> {
@@ -13,7 +15,9 @@ async function startServer(): Promise<void> {
           // Connect to Neon before accepting requests.
           await connectDatabase();
 
-          const server = app.listen(env.PORT, () => {
+          const server = createServer(app);
+          const shutdownCollaboration = attachDocCollaboration(server);
+          server.listen(env.PORT, () => {
                logger.info(
                     {
                          app: env.APP_NAME,
@@ -23,7 +27,6 @@ async function startServer(): Promise<void> {
                     "Application server started",
                );
           });
-
           let isShuttingDown = false;
 
           async function shutdown(signal: NodeJS.Signals): Promise<void> {
@@ -32,6 +35,16 @@ async function startServer(): Promise<void> {
                isShuttingDown = true;
 
                logger.info({ signal }, "Graceful shutdown initiated");
+
+               try {
+                    await shutdownCollaboration();
+               } catch (shutdownError) {
+                    logger.error(
+                         { err: shutdownError },
+                         "Collaboration shutdown failed",
+                    );
+                    process.exitCode = 1;
+               }
 
                server.close(async (error) => {
                     if (error) {

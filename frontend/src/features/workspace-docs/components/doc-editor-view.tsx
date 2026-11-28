@@ -29,17 +29,19 @@ import StarterKit from "@tiptap/starter-kit";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Placeholder from "@tiptap/extension-placeholder";
+import Collaboration from "@tiptap/extension-collaboration";
+import * as Y from "yjs";
 import { ApiClientError } from "@/lib/api-client";
 import { useWorkspace } from "@/features/workspace";
 import { docApi } from "../api/doc.api";
+import {
+     createCollaborationRoom,
+     type CollaborationStatus,
+} from "../collab/collab-room";
 import { ConfirmDeleteModal } from "./confirm-delete-modal";
 import { getErrorMessage } from "../hooks/use-workspace-docs";
 import type { UpdateDocPayload, WorkspaceDoc } from "../types/doc.types";
 
-const EMPTY_CONTENT = {
-     type: "doc",
-     content: [{ type: "paragraph" }],
-};
 const SAVE_DELAY = 850;
 
 type SaveStatus = "saved" | "saving" | "unsaved" | "error";
@@ -305,7 +307,10 @@ function EditorSurface({
      canEdit: boolean;
 }) {
      const router = useRouter();
+     const [ydoc] = useState(() => new Y.Doc());
      const [title, setTitle] = useState(document.title);
+     const [collaborationStatus, setCollaborationStatus] =
+          useState<CollaborationStatus>({ state: "connecting" });
      const [saveStatus, setSaveStatus] = useState<SaveStatus>("saved");
      const [saveError, setSaveError] = useState<string | null>(null);
      const [saveErrorCode, setSaveErrorCode] = useState<number | null>(null);
@@ -319,8 +324,6 @@ function EditorSurface({
      const initialTitleSelectedRef = useRef(false);
      const latestPayloadRef = useRef<UpdateDocPayload>({
           title: document.title,
-          contentJson: document.contentJson ?? EMPTY_CONTENT,
-          contentText: document.contentText ?? "",
      });
      const versionRef = useRef(0);
      const savedVersionRef = useRef(0);
@@ -349,26 +352,35 @@ function EditorSurface({
           }, SAVE_DELAY);
      }, []);
 
+     useEffect(() => {
+          const room = createCollaborationRoom({
+               workspaceId,
+               docId: document.id,
+               document: ydoc,
+               canEdit,
+               onStatusChange: setCollaborationStatus,
+          });
+          return () => room.destroy();
+     }, [canEdit, document.id, workspaceId, ydoc]);
+
      const editor = useEditor({
           extensions: [
                StarterKit.configure({
                     heading: { levels: [1, 2, 3] },
+                    undoRedo: false,
                }),
                TaskList,
                TaskItem.configure({ nested: true }),
                Placeholder.configure({
                     placeholder: "Start writing...",
                }),
+               Collaboration.configure({
+                    document: ydoc,
+                    field: "default",
+               }),
           ],
-          content: document.contentJson ?? EMPTY_CONTENT,
           editable: canEdit,
           immediatelyRender: false,
-          onUpdate: ({ editor: currentEditor }) => {
-               markChanged({
-                    contentJson: currentEditor.getJSON(),
-                    contentText: currentEditor.getText(),
-               });
-          },
           onBlur: () => {
                void flushRef.current();
           },
@@ -438,7 +450,6 @@ function EditorSurface({
 
           const sequence = ++requestSequenceRef.current;
           const payload = {
-               ...latestPayloadRef.current,
                title: trimmedTitle,
           };
           inFlightRef.current = true;
@@ -555,6 +566,16 @@ function EditorSurface({
           unsaved: "Unsaved",
           error: "Retry save",
      }[saveStatus];
+     const collaborationLabel = {
+          connecting: "Connecting...",
+          syncing: "Syncing...",
+          connected: "Live",
+          reconnecting: collaborationStatus.retryAttempt
+               ? `Reconnecting ${collaborationStatus.retryAttempt}/10`
+               : "Reconnecting...",
+          disconnected: "Offline",
+          error: "Connection error",
+     }[collaborationStatus.state];
 
      return (
           <div
@@ -600,6 +621,30 @@ function EditorSurface({
                     </div>
 
                     <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+                         <div
+                              role="status"
+                              aria-live="polite"
+                              title={collaborationStatus.message ?? collaborationLabel}
+                              style={{
+                                   borderColor:
+                                        collaborationStatus.state === "error"
+                                             ? "var(--danger-border)"
+                                             : "var(--border-hairline)",
+                                   backgroundColor:
+                                        collaborationStatus.state === "error"
+                                             ? "var(--danger-bg)"
+                                             : "var(--bg-surface)",
+                                   color:
+                                        collaborationStatus.state === "connected"
+                                             ? "var(--success-text)"
+                                             : collaborationStatus.state === "error"
+                                               ? "var(--danger-text)"
+                                               : "var(--text-muted)",
+                              }}
+                              className="flex min-h-6 min-w-24 items-center justify-center rounded border px-2 font-mono text-[10px] tabular-nums"
+                         >
+                              {collaborationLabel}
+                         </div>
                          <div
                               role="status"
                               aria-live="polite"

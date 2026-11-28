@@ -27,6 +27,7 @@ const envSchema = z.object({
           ),
 
      DATABASE_URL: z.string().optional().default(""),
+     REDIS_URL: z.string().optional().default(""),
 
      // JWT Authentication Config
      JWT_ACCESS_SECRET: z

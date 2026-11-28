@@ -984,6 +984,7 @@ export const DocumentScalarFieldEnum = {
   workspaceId: 'workspaceId',
   title: 'title',
   contentJson: 'contentJson',
+  yjsState: 'yjsState',
   contentText: 'contentText',
   createdById: 'createdById',
   updatedById: 'updatedById',
@@ -1144,6 +1145,18 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
+
+
+/**
+ * Reference to a field of type 'Bytes'
+ */
+export type BytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes'>
+
+
+/**
+ * Reference to a field of type 'Bytes[]'
+ */
+export type ListBytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes[]'>
 
 
 /**
@@ -1378,4 +1391,3 @@ export type PrismaAction =
  * `PrismaClient` proxy available in interactive transactions.
  */
 export type TransactionClient = Omit<DefaultPrismaClient, runtime.ITXClientDenyList>
-
