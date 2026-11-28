@@ -46,6 +46,8 @@ model User {
   workspacesOwned     Workspace[]           @relation("WorkspaceOwner")
   workspaceMembers    WorkspaceMember[]
   sentInvitations     WorkspaceInvitation[] @relation("InvitedByUser")
+  documentsCreated    Document[]            @relation("DocumentCreatedBy")
+  documentsUpdated    Document[]            @relation("DocumentUpdatedBy")
 
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -84,6 +86,7 @@ model Workspace {
 
   members             WorkspaceMember[]
   invitations         WorkspaceInvitation[]
+  documents           Document[]
 
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
@@ -126,4 +129,23 @@ model WorkspaceInvitation {
   @@index([workspaceId])
   @@index([workspaceId, email, status])
   @@map("workspace_invitations")
+}
+
+model Document {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  title       String    @default("Untitled Doc")
+  contentJson Json?
+  contentText String    @default("")
+  createdById String
+  createdBy   User      @relation("DocumentCreatedBy", fields: [createdById], references: [id])
+  updatedById String
+  updatedBy   User      @relation("DocumentUpdatedBy", fields: [updatedById], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId])
+  @@index([workspaceId, updatedAt])
+  @@map("workspace_documents")
 }

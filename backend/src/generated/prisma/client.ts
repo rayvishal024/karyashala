@@ -66,3 +66,8 @@ export type WorkspaceMember = Prisma.WorkspaceMemberModel
  * 
  */
 export type WorkspaceInvitation = Prisma.WorkspaceInvitationModel
+/**
+ * Model Document
+ * 
+ */
+export type Document = Prisma.DocumentModel

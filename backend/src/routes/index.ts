@@ -9,6 +9,7 @@ import { workspaceInviteLinkRouter } from "../modules/workspace-invite-link/inde
 import { workspaceMemberRouter } from "../modules/workspace-members/index.js";
 import { publicInviteRouter } from "../modules/workspace-invitations/index.js";
 import { publicJoinRouter } from "../modules/workspace-invite-link/index.js";
+import { workspaceDocsRouter } from "../modules/workspace-docs/index.js";
 
 const apiRouter: ExpressRouter = Router();
 
@@ -18,6 +19,7 @@ apiRouter.use("/workspaces", workspaceRouter);
 apiRouter.use("/workspaces", workspaceInviteRouter);
 apiRouter.use("/workspaces", workspaceInviteLinkRouter);
 apiRouter.use("/workspaces", workspaceMemberRouter);
+apiRouter.use("/workspaces", workspaceDocsRouter);
 
 apiRouter.use("/invites", publicInviteRouter);
 apiRouter.use("/join", publicJoinRouter);

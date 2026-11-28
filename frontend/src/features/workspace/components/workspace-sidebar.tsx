@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Users, Settings, LogOut } from "lucide-react";
+import { LayoutGrid, Users, Settings, LogOut, FileText } from "lucide-react";
 import { useAuth } from "@/features/auth";
 import { ThemeToggle } from "@/shared/theme/theme-toggle";
 import { useWorkspace } from "../hooks/use-workspace";
@@ -35,6 +35,12 @@ export function WorkspaceSidebar({
                href: `/w/${slug}/members`,
                icon: Users,
                active: pathname.startsWith(`/w/${slug}/members`),
+          },
+          {
+               label: "Docs",
+               href: `/w/${slug}/docs`,
+               icon: FileText,
+               active: pathname.startsWith(`/w/${slug}/docs`),
           },
           {
                label: "Settings",
